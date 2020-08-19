@@ -172,37 +172,24 @@
   * Adding a public IP to the service (not recommended)
   * Place instance behind a LB that has a public IP
   * Use Network Virtual Appliance (NVA) with a public IP
+
+### DNS
+
+* Azure DNS a.k.a public DNS is a hosting service for DNS domains
+* In addition to supporting internet-facing DNS domains, Azure DNS also supports private DNS zones (Azure Private DNS)
+* Azure DNS uses Anycast networking so that each DNS query is answered by the closest available DNS server
+* **Azure DNS** provides an authoritative DNS service. It does not provide a recursive DNS service. Cloud Services and VMs in Azure are automatically configured to use a recursive DNS service that is provided separately as part of Azure's infrastructure
+* If the user buys a custome domain contoso.net, the domain name registrar allows the user to setup NS record to point to the authoritative name server (in this case Azure DNS). The registrar stores the NS records in the .net parent zone
+* **Private Azure DNS** - By using private DNS zones, you can use your own custom domain names rather than the Azure-provided names available today. The records contained in a private DNS zone are not resolvable from the Internet. DNS resolution against a private DNS zone works only from virtual networks that are linked to it
+* You can also enable auto-registration feature to automatically manage the life cycle of the DNS records for the virtual machines deployed in a virtual network
+* Azure provided name resolution provides only basic authoritative DNS capabilities. If you use this option the DNS zone names and records will be automatically managed by Azure and you will not be able to control the DNS zone names or the life cycle of DNS records. If you need a fully featured DNS solution for your virtual networks you must use Azure DNS private zones or Customer-managed DNS servers
 * When resources deployed in virtual networks need to resolve domain names to internal IP addresses, they can use one of three methods:
   * Azure DNS private zones
-    * By using private DNS zones, you can use your own custom domain names rather than the Azure-provided names available today
-    * You can configure zones names with a split-horizon view, which allows a private and a public DNS zone to share the name
-    * It provides name resolution for virtual machines (VMs) within a virtual network and between virtual networks
   * Azure-provided name resolution
-    * If you use this option the DNS zone names and records will be automatically managed by Azure and you will not be able to control the DNS zone names or the life cycle of DNS records
-    * If you need a fully featured DNS solution for your virtual networks you must use Azure DNS private zones or Customer-managed DNS servers
   * Name resolution that uses your own DNS server (which might forward queries to the Azure-provided DNS servers)
 * DNS Name resolution scenarios:
-
-  | Scenario                                 | Recommendation      |
-  | ---------------------------------------- | ------------------- |
-  | Name resolution between role instances   | Azure Provided DNS  |
-  | or virtual machines in the same virtual  | or Azure DNS        |
-  | network                                  | private zone        |
-  |                                          |                     |
-  | Name rsolution between different virtual | Azure DNS private   |
-  | networks                                 | zones or customer   |
-  |                                          | managed DNS servers |
-  |                                          |                     |
-  | Resolution of on-premise names from      | Customer managed    |
-  | Azure                                    | DNS servers         |
-  |                                          |                     |
-  | Resolution of Azure names from           | Customer managed    |
-  | on-premise computers                     | DNS servers forwar- |
-  |                                          | ing queries to      |
-  |                                          | Azure for name res- |
-  |                                          | olution
-
-  * For the custom DNs changes to take effect, the VMs need to be restarted
-  * Azure DNS a.k.a public DNS is a hosting service for DNS domains
-  * Azure DNN uses Anycast networking so that each DNS query is answered by the closest available DNS server
-  * In addition to supporting internet-facing DNS domains, Azure DNS also supports private DNS zones (Azure Private DNS)
+  * **Name resolution for resources in the same VNet** - Azure Provided DNS or Azure DNS private zone
+  * **Name resolution for resources between different VNets** - Azure DNS private zones or customer managed DNS servers
+  * **Resolution of on-premise names from Azure** - Cusomer managed DNS servers
+  * **Resolution of Azure names from on-premise computers** - Customer managed DNS servers forwarding queries to Azure for name resolution
+* For the custom DNS changes to take effect, the VMs need to be restarted
