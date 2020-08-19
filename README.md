@@ -217,3 +217,44 @@
   * **Resolution of on-premise names from Azure** - Cusomer managed DNS servers
   * **Resolution of Azure names from on-premise computers** - Customer managed DNS servers forwarding queries to Azure for name resolution
 * For the custom DNS changes to take effect, the VMs need to be restarted
+
+## Azure Data Lake Storage
+
+* Azure Data Lake Storage Gen2 is a set of capabilities dedicated to big data analytics, built on Azure Blob storage
+* A fundamental part of Data Lake Storage Gen2 is the addition of a hierarchical namespace to Blob storage
+* Data Lake Storage Gen2 allows you to manage and access data just as you would with a Hadoop Distributed File System (HDFS)
+* One of the primary access methods for data in Azure Data Lake Storage Gen2 is via the Hadoop FileSystem
+* Data Lake Storage Gen2 allows users of Azure Blob Storage access to a new driver, the Azure Blob File System driver or ABFS
+* ABFS is part of Apache Hadoop and is included in many of the commercial distributions of Hadoop
+* Using ABFS, many applications and frameworks can access data in Azure Blob Storage without any code explicitly referencing Data Lake Storage Gen2
+* **Ingesting data into ADLS**
+  * **Adhoc data**
+    * Local Computer - Azure PowerShell, Azure CLI, Storage Explorer, AzCopy tool
+    * Azure Storage Blob - Azure Data Factory, AzCopy tool, DistCp running on HDInsignt cluster
+  * **Streamed Data** - The following tools will usually capture and process the data on an event-by-event basis in real-time, and then write the events in batches into Data Lake Storage Gen2 so that they can be further processed
+    * Azure Stream Analytics
+    * Azure HDInsight Storm
+  * **Relational Data**
+    * Azure Data Factory
+  * **Web server log data**
+    * Azure Data Factory
+    * Azure PowerShell
+    * Azure CLI
+  * **Data associated with Azure HDInsight clusters**
+    * Azure DistCp
+    * AzCopy tool
+    * Azure Data Factory
+  * **Data stored in on-premises or IaaS Hadoop clusters**
+    * Azure Data Factory
+  * **Really large datasets**
+    * Azure ExpressRoute
+* **Processng Data**
+  * Azure HDInsight
+  * Azure Databricks
+* **Visualizing Data**
+  * Power BI
+* **Download the data**
+  * Azure Data Factory
+  * Azure DistCp
+  * Azure Storage Explorer
+  * AzCopy tool
