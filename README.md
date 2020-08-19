@@ -172,6 +172,30 @@
   * Adding a public IP to the service (not recommended)
   * Place instance behind a LB that has a public IP
   * Use Network Virtual Appliance (NVA) with a public IP
+* Possible values for **Next hop types** in a route table:
+  * **Virtual Network** - For each address range of the VNet
+  * **Internet** - If you don't override Azure's default routes, Azure routes traffic for any address not specified by an address range within a virtual network, to the Internet, with one exception. If the destination address is for one of Azure's services, Azure routes the traffic directly to the service over Azure's backbone network, rather than routing the traffic to the Internet
+  * **None** - Traffic routed to the None next hop type is dropped
+  * **Virtual network (VNet) peering** - When you create a virtual network peering between two virtual networks, a route is added for each address range within the address space of each virtual network a peering is created for
+  * **Virtual network gateway** - One or more routes with Virtual network gateway listed as the next hop type are added when a virtual network gateway is added to a virtual network. If your on-premises network gateway exchanges border gateway protocol (BGP) routes with an Azure virtual network gateway, a route is added for each route propagated from the on-premises network gateway
+  * **VirtualNetworkServiceEndpoint** - The public IP addresses for certain services are added to the route table by Azure when you enable a service endpoint to the service. Service endpoints are enabled for individual subnets within a virtual network, so the route is only added to the route table of a subnet a service endpoint is enabled for
+  * **Virtual appliance** - A virtual appliance is a virtual machine that typically runs a network application, such as a firewall
+* Any network interface attached to a virtual machine that forwards network traffic to an address other than its own must have the Azure Enable IP forwarding option enabled for it. The setting disables Azure's check of the source and destination for a network interface
+* Though Enable IP forwarding is an Azure setting, you may also need to enable IP forwarding within the virtual machine's operating system for the appliance to forward traffic between private IP addresses assigned to Azure network interfaces
+* If the appliance must route traffic to a public IP address, it must either proxy the traffic, or network address translate the private IP address of the source's private IP address to its own private IP address, which Azure then network address translates to a public IP address, before sending the traffic to the Internet
+* You can create custom, or user-defined(static), routes in Azure to override Azure's default system routes, or to add additional routes to a subnet's route table
+* An on-premises network gateway can exchange routes with an Azure virtual network gateway using the border gateway protocol (BGP)
+* You cannot specify VNet peering or VirtualNetworkServiceEndpoint as the next hop type in user-defined routes
+* In Azure, you create a route table, then associate the route table to zero or more virtual network subnets
+* Each subnet can have zero or one route table associated to it
+* If you create a route table and associate it to a subnet, the routes within it are combined with, or override, the default routes Azure adds to a subnet by default
+* If multiple routes contain the same address prefix, Azure selects the route type, based on the following priority:
+  * User-defined route
+  * BGP route
+  * System route
+* Deploy a virtual appliance into a different subnet than the resources that route through the virtual appliance are deployed in. Deploying the virtual appliance to the same subnet, then applying a route table to the subnet that routes traffic through the virtual appliance, can result in routing loops, where traffic never leaves the subnet
+* NAT Gateway is a completely managed service throgh which goes all the outbound connections to the internet. The NAT gateway does the address translation from the private IP to a fixed range of public IP. This helps in whitelisting IPs
+* Load Balancer is for the inbound connections
 
 ### DNS
 
