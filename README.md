@@ -258,3 +258,21 @@
   * Azure DistCp
   * Azure Storage Explorer
   * AzCopy tool
+* Data Lake Storage Gen2 supports individual file sizes as high as 5TB
+* Azure Active Directory service principals are typically used by services like Azure Databricks to access data in Data Lake Storage Gen2
+* Data Lake Storage Gen2 supports the option of turning on a firewall and limiting access only to Azure services
+* Data Lake Storage Gen2 handles 3x replication under the hood to guard against localized hardware failures
+* Replication options, such as ZRS or GZRS, improve HA, while GRS & RA-GRS improve DR
+* For data resiliency with Data Lake Storage Gen2, it is recommended to geo-replicate your data via GRS or RA-GRS that satisfies your HA/DR requirements
+* **Distcp**
+  * The most recommended tool for copying data between big data stores like Data Lake Storage Gen2, HDFS, or S3
+  * Uses MapReduce jobs on a Hadoop cluster (for example, HDInsight) to scale out on all the nodes
+  * Option to only update deltas between two locations
+  * Handles automatic retries
+  * Dynamic scaling of compute
+* **Azure Data Factory**
+  * Has a limit of cloud data movement units (DMUs), and eventually caps the throughput/compute for large data workloads
+  * Does not offer delta updates between Data Lake Storage Gen2 accounts, so directories like Hive tables would require a complete copy to replicate
+* Recommended directory structure fo better permissions management
+  * IoT structure - {Region}/{SubjectMatter(s)}/{yyyy}/{mm}/{dd}/{hh}/
+  * Batch jobs structure - {Region}/{SubjectMatter(s)}/In/{yyyy}/{mm}/{dd}/{hh}/, {Region}/{SubjectMatter(s)}/Out/{yyyy}/{mm}/{dd}/{hh}/, {Region}/{SubjectMatter(s)}/Bad/{yyyy}/{mm}/{dd}/{hh}/
