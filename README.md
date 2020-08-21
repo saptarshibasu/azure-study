@@ -276,3 +276,103 @@
 * Recommended directory structure fo better permissions management
   * IoT structure - {Region}/{SubjectMatter(s)}/{yyyy}/{mm}/{dd}/{hh}/
   * Batch jobs structure - {Region}/{SubjectMatter(s)}/In/{yyyy}/{mm}/{dd}/{hh}/, {Region}/{SubjectMatter(s)}/Out/{yyyy}/{mm}/{dd}/{hh}/, {Region}/{SubjectMatter(s)}/Bad/{yyyy}/{mm}/{dd}/{hh}/
+
+## Azure Blob Storage
+
+* Azure Blob storage is Microsoft's object storage solution for the cloud
+* Blob storage offers three types of resources:
+  * The storage account
+  * A container in the storage account
+  * A blob in a container
+* A storage account provides a unique namespace in Azure for your data
+* Azure Storage supports three types of blobs:
+  * **Block blobs** store text and binary data. Block blobs are made up of blocks of data that can be managed individually. Block blobs store up to about 4.75 TiB of data. Larger block blobs are available in preview, up to about 190.7 TiB
+  * **Append blobs** are made up of blocks like block blobs, but are optimized for append operations. Append blobs are ideal for scenarios such as logging data from virtual machines
+  * **Page blobs** store random access files up to 8 TB in size. Page blobs store virtual hard drive (VHD) files and serve as disks for Azure virtual machines
+* The types of storage accounts are
+  * **General-purpose v2 accounts** - Basic storage account type for blobs (all types - block, append, page), files, queues, and tables. Recommended for most scenarios using Azure Storage
+  * **General-purpose v1 accounts** - Legacy account type for blobs, files, queues, and tables. Use general-purpose v2 accounts instead when possible
+  * **BlockBlobStorage accounts** - Storage accounts with premium performance characteristics for block blobs and append blobs. Recommended for scenarios with high transactions rates, or scenarios that use smaller objects or require consistently low storage latency
+  * **FileStorage accounts** - Files-only storage accounts with premium performance characteristics. Recommended for enterprise or high performance scale applications
+  * **BlobStorage accounts** - Legacy Blob-only storage accounts. Use general-purpose v2 accounts instead when possible.
+* Azure storage redundancy types
+  * **Locally redundant storage (LRS)** - A simple, low-cost redundancy strategy. Data is copied synchronously three times within the primary region
+  * **Zone-redundant storage (ZRS)** - Redundancy for scenarios requiring high availability. Data is copied synchronously across three Azure availability zones in the primary region
+  * **Geo-redundant storage (GRS)** - Cross-regional redundancy to protect against regional outages. Data is copied synchronously three times in the primary region, then copied asynchronously to the secondary region. For read access to data in the secondary region, enable read-access geo-redundant storage (RA-GRS)
+  * **Geo-zone-redundant storage (GZRS) (preview)** - Redundancy for scenarios requiring both high availability and maximum durability. Data is copied synchronously across three Azure availability zones in the primary region, then copied asynchronously to the secondary region. For read access to data in the secondary region, enable read-access geo-zone-redundant storage (RA-GZRS)
+* With GRS or GZRS, the data in the secondary location isn't available for read or write access unless there is a failover to the secondary region
+* If the primary region becomes unavailable, you can choose to fail over to the secondary region. After the failover has completed, the secondary region becomes the primary region, and you can again read and write data
+* Because data is replicated to the secondary region asynchronously, a failure that affects the primary region may result in data loss if the primary region cannot be recovered. The interval between the most recent writes to the primary region and the last write to the secondary region is known as the recovery point objective (RPO). The RPO indicates the point in time to which data can be recovered. Azure Storage typically has an RPO of less than 15 minutes, although there's currently no SLA on how long it takes to replicate data to the secondary region
+* Geo-redundant storage (GRS) copies your data synchronously three times within a single physical location in the primary region using LRS. It then copies your data asynchronously to a single physical location in a secondary region. When data is written to the secondary location, it's also replicated within that location using LRS
+* If your storage account is configured for read access to the secondary region, then you can design your applications to seamlessly shift to reading data from the secondary region if the primary region becomes unavailable for any reason
+* The secondary region is available for read access after you enable RA-GRS or RA-GZRS, so that you can test your application in advance to make sure that it will properly read from the secondary in the event of an outage
+* To determine which write operations have been replicated to the secondary region, your application can check the Last Sync Time property for your storage account. All write operations written to the primary region prior to the last sync time have been successfully replicated to the secondary region, meaning that they are available to be read from the secondary
+* **Durability** over a given year
+  * LRS - at least 99.999999999% (11 9's)	
+  * ZRS - at least 99.9999999999% (12 9's)
+  * GRS - at least 99.99999999999999% (16 9's)
+  * GZRS - at least 99.99999999999999% (16 9's)
+* **Storage account redundancy types**
+  * General Purpose V2 - LRS, ZRS, GRS, GZRS
+  * Block Blob Storage - LRS, ZRS
+  * File Storage - LRS, ZRS
+* Azure storage offers different access tiers, which allow you to store blob object data in the most cost-effective manner. The available access tiers include:
+  * **Hot** - Optimized for storing data that is accessed frequently
+  * **Cool** - Optimized for storing data that is infrequently accessed and stored for at least 30 days
+  * **Archive** - Optimized for storing data that is rarely accessed and stored for at least 180 days with flexible latency requirements (on the order of hours)
+* Only the hot and cool access tiers can be set at the account level. The archive access tier isn't available at the account level
+* Hot, cool, and archive tiers can be set at the blob level during upload or after upload
+* Archive storage stores data offline and offers the lowest storage costs but also the highest data rehydrate and access costs
+* For objects with the tier set at the object level, the account tier won't apply. The archive tier can be applied only at the object level. You can switch between these access tiers at any time
+* Data must remain in the archive tier for at least 180 days or be subject to an early deletion charge
+* For small objects, a high priority rehydrate may retrieve the object from archive in under 1 hour
+* While a blob is in archive storage, the blob data is offline and can't be read, overwritten, or modified
+* To read or download a blob in archive, you must first rehydrate it to an online tier
+* You can't take snapshots of a blob in archive storage. However, the blob metadata remains online and available, allowing you to list the blob, its properties, metadata, and blob index tags
+* Setting or modifying the blob metadata while in archive is not allowed; however you may set and modify the blob index tags
+* Blob Storage lifecycle management offers a rich, rule-based policy that you can use to transition your data to the best access tier and to expire data at the end of its lifecycle
+* Data stored in a block blob storage account (Premium performance) cannot currently be tiered to hot, cool, or archive using Set Blob Tier or using Azure Blob Storage lifecycle management. To move data, you must synchronously copy blobs from the block blob storage account to the hot access tier in a different account
+* Storage Availability
+  * Hot Tier - 99.9%, 99.99% (with RA-GRS reads)
+  * Cool Tier - 99%, 99.9% (with RA-GRS reads)
+  * Archive Tier - offline
+* Azure block blob storage offers two different performance tiers:
+  * **Premium** - optimized for high transaction rates and single-digit consistent storage latency
+  * **Standard** - optimized for high capacity and high throughput
+* **Standard performance tier**
+  * Supported storage account type - General purpose v2, BlobStorage, General purpose v1
+  * Region availability - all regions
+  * Redundancy - as per storage account type
+* **Premium preformance tier**
+  * Supported storage account type - Block blob storage
+  * Region availability - selected regions
+  * Redundancy - LRS, ZRS
+* Premium performance block blob storage makes data available via high-performance hardware. Data is stored on solid-state drives (SSDs) which are optimized for low latency. Good for - 
+  * Interactive workloads
+  * Analytics - IoT many smaller writes
+  * Artificial intelligence/machine learning (AI/ML)
+  * Data transformation
+* Standard performance supports different access tiers to store data in the most cost-effective manner. It's optimized for high capacity and high throughput on large data sets. Good for - 
+  * Backup and disaster recovery datasets
+  * Media content
+  * Bulk data processing
+* Blob storage lifecycle management offers a rich, rule-based policy:
+  * Premium - Expire data at the end of its lifecycle
+  * Standard - Transition data to the best access tier and expire data at the end of its lifecycle
+* Azure storage service is designed to embrace a strong consistency model which guarantees that when the Storage service commits a data insert or update operation all further accesses to that data will see the latest update
+* The Azure storage service uses snapshot isolation to allow read operations to happen concurrently with write operations within a single partition. Snapshot isolation guarantees that all reads see a consistent snapshot of the data even while updates are occurring – essentially by returning the last committed values while an update transaction is being processed
+* You can opt to use either optimistic or pessimistic concurrency models to manage access to blobs and containers in the Blob service. If you do not explicitly specify a strategy last writes wins is the default
+* **Optimistic concurrency** for blobs
+  * Retrieve a blob from the storage service, the response includes an HTTP ETag Header value that identifies the current version of the object in the storage service
+  * When you update the blob, include the ETag value you received in step 1 in the If-Match conditional header of the request you send to the service.
+  * The service compares the ETag value in the request with the current ETag value of the blob
+  * If the current ETag value of the blob is a different version than the ETag in the If-Match conditional header in the request, the service returns a 412 error to the client. This indicates to the client that another process has updated the blob since the client retrieved it
+  * If the current ETag value of the blob is the same version as the ETag in the If-Match conditional header in the request, the service performs the requested operation and updates the current ETag value of the blob to show that it has created a new version
+* **Pessimistic concurrency** for blobs
+  * To lock a blob for exclusive use, you can acquire a lease on it
+  * When you acquire a lease, you specify for how long you need the lease: this can be for between 15 to 60 seconds or infinite, which amounts to an exclusive lock
+  * You can renew a finite lease to extend it, and you can release any lease when you are finished with it
+  * The Blob service automatically releases finite leases when they expire.
+  * Leases enable different synchronization strategies to be supported, including exclusive write / shared read, exclusive write / exclusive read and shared write / exclusive read. Where a lease exists the storage service enforces exclusive writes (put, set and delete operations) however ensuring exclusivity for read operations requires the developer to ensure that all client applications use a lease ID and that only one client at a time has a valid lease ID
+  * Read operations that do not include a lease ID result in shared reads.
+* The Table service uses optimistic concurrency checks as the default behavior when you are working with entities
