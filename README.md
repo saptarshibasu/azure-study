@@ -1,18 +1,28 @@
 # Azure Cheat Sheet
 
+## Table of Content
+
+[Basics](#basics)
+[Resource Groups](#resource-groups)
+[Virtual Networking](#virtual-networking)
+
+
+## Basics
+
 * VM Availability: https://azure.microsoft.com/en-gb/support/legal/sla/virtual-machines/v1_9/
 * Azure Enterprise (https://ea.azure.com) -> Departments (Optional) -> Accounts (https://account.azure.com) -> Subscriptions (https://portal.azure.com) -> Resource Groups -> Resources
 * EA Breakdown - Enterprise Admin, Department Admin, Account Owner, Service Admin
 
 ## Resource Groups
-
-* Benefits or Purpose
-  * Better organization
-  * Easy de-provisioning
-  * Security boundary
-    * Role-based Access Control (RBAC)
-  * Apply policies
-* The region of the resource group indicates the region where the resource group metadata will be stored. The resource group does not require the resources to be created in the same region. However, while creating resources using template, it is convenient to inherit the region from the resource group
+* A container that holds related resources for an Azure solution
+* Generally used to hold resources that share the same lifecycle, so they can be easily deployed, updated, and deleted as a group
+* The region of the resource group indicates the region where the resource group metadata will be stored
+* The resource group does not require the resources to be created in the same region
+* It is a good practice to create the resources in the same region as the resource group because 
+  * It is convenient to inherit the region from the resource group
+  * If the resource group's region is temporarily unavailable, you can't update resources in the resource group because the metadata is unavailable even though the resources in a different region may be up and running
+* RBAC can be used to allow an application to access all resources in a resource group
+* Naming convention - `rg-<App / Service name>-<Subscription type>-<###>` e.g. `rg-sharepoint-prod-001`
 * Two deployment models:
   * Classic - Legacy model
   * Resource Manager - Introduction of the resource group concept for better manageability
@@ -43,16 +53,18 @@
   * Internet resources to communicate inbound to the Azure resources
   * Azure resources to communicate outbound to the internet
   * Azure resources to communicate outbound to the Azure public facing services
+* A resource without a public IP assigned can communicate outbound. Its address is network address translated by Azure to an unpredictable public address, by default
 * Public IP address can be assigned to:
   * Virtual Machine NIC
   * Public facing Load Balancers
-  * VPN and Application Gateways
+  * VPN Gateways
+  * Application Gateways
   * Azure Firewall
 * Public IP Address SKUs
   * Basic SKU
     * No longer default
     * Assigned with static or dynamic allocation method
-    * open by default (NSGs recommended)
+    * Open by default (NSGs recommended)
     * Assigned to any Azure resource that allows a Public IP
     * Do not support Availability Zones
   * Standard SKU
@@ -61,7 +73,23 @@
     * Secure by default and closed to all inbound traffic
     * Assigned to NICs, Standard LBs, or App GWs
     * Support Availability Zones and can be zone-redundant or zonal
+* Inbound communication with a Standard SKU resource fails until you create and associate a network security group and explicitly allow the desired inbound traffic
 * Virtual Network is tied to a specific region and a specific subscription
+
+### Azure Bastion
+
+* Azure Bastion is a fully managed platform PaaS service from Azure that is hardened internally to provide you secure RDP/SSH connectivity
+* Azure Bastion is deployed per virtual network
+* Workings of Azure Bastion
+  * The Bastion host is deployed in the virtual network
+  * The user connects to the Azure portal using any HTML5 browser
+  * The user selects the virtual machine to connect to
+  * With a single click, the RDP/SSH session opens in the browser
+  * No public IP is required on the Azure VM.
+* NSGs are required on target subnets to allow RDP/SSH from Azure Bastion only
+* With Azure Bastion we get RDP/SSH session over TLS on port 443 enabling you to traverse corporate firewalls securely
+* Azure Bastion is deployed in a dedicated subnet which must be named as AzureBastionSubnet. This subnet must be at least /27 or larger
+* Azure Bastion needs a static public IP (Standard SKU)
 
 ### Hybrid Connectivity
 
@@ -376,3 +404,34 @@
   * Leases enable different synchronization strategies to be supported, including exclusive write / shared read, exclusive write / exclusive read and shared write / exclusive read. Where a lease exists the storage service enforces exclusive writes (put, set and delete operations) however ensuring exclusivity for read operations requires the developer to ensure that all client applications use a lease ID and that only one client at a time has a valid lease ID
   * Read operations that do not include a lease ID result in shared reads.
 * The Table service uses optimistic concurrency checks as the default behavior when you are working with entities
+
+## ARM Template
+
+* Use parameters for settings that vary according to the environment, like SKU, size, or capacity
+* We recommend running the ARM test toolkit and the what-if operation on your templates before deploying them
+  * The test toolkit checks whether your template uses best practices. It provides warnings when it identifies changes that could improve how you've implemented your template
+  * The what-if operation shows the changes your template will make to your environment. You can see unintended changes before they're deployed. What-if also returns any errors it can detect during preflight validation. For example, if your template contains a syntactical error, it returns that error. It also returns any errors it can determine about the final state of the deployed resources. For example, if your template deploys a storage account with a name that is already in use, what-if returns that error
+* Use the copy element to specify more than one instance. You can use copy on resources, properties, variables, and outputs
+* Yes, they can be used across subscriptions as long as the user has read access to the template spec. Template specs can't be used across tenants
+* You can include Azure PowerShell or Azure CLI scripts in your templates
+* If you need to run a script on a host operating system in a VM, then the custom script extension and/or DSC would be a better choice. However, deployment scripts have advantages, such as setting the timeout duration
+* When deploying your resources, you specify that the deployment is either an incremental update or a complete update
+* The default mode is incremental
+* For both modes, Resource Manager tries to create all resources specified in the template. If the resource already exists in the resource group and its settings are unchanged, no operation is taken for that resource. If you change the property values for a resource, the resource is updated with those new values. If you try to update the location or type of an existing resource, the deployment fails with an error
+* In complete mode, Resource Manager deletes resources that exist in the resource group but aren't specified in the template
+* What-if shows you which resources will be created, deleted, or modified. Use what-if to avoid unintentionally deleting resources
+* Sections of template:
+  * $schema - required
+  * contentVersion - required
+  * apiProfile - optional
+  * parameters - optioanl
+  * variables - optional
+  * functions - optional
+  * resources - required
+  * outputs - optional
+* linked template refers to a separate template file that is referenced via a link from the main template
+* nested template to refer to embedded template syntax within the main template
+* To link a template, add a deployments resource to your main template. In the templateLink property, specify the URI of the template to include
+* By default, Resource Manager creates the resources in parallel. It applies no limit to the number of resources deployed in parallel, other than the total limit of 800 resources in the template. The order in which they're created isn't guaranteed
+* To serially deploy more than one instance of a resource, set mode to serial and batchSize to the number of instances to deploy at a time. With serial mode, Resource Manager creates a dependency on earlier instances in the loop, so it doesn't start one batch until the previous batch completes
+* You specify that a resource is deployed after another resource by using the dependsOn element. To deploy a resource that depends on the collection of resources in a loop, provide the name of the copy loop in the dependsOn element
