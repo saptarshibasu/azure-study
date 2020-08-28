@@ -76,21 +76,6 @@
 * Inbound communication with a Standard SKU resource fails until you create and associate a network security group and explicitly allow the desired inbound traffic
 * Virtual Network is tied to a specific region and a specific subscription
 
-### Azure Bastion
-
-* Azure Bastion is a fully managed platform PaaS service from Azure that is hardened internally to provide you secure RDP/SSH connectivity
-* Azure Bastion is deployed per virtual network
-* Workings of Azure Bastion
-  * The Bastion host is deployed in the virtual network
-  * The user connects to the Azure portal using any HTML5 browser
-  * The user selects the virtual machine to connect to
-  * With a single click, the RDP/SSH session opens in the browser
-  * No public IP is required on the Azure VM.
-* NSGs are required on target subnets to allow RDP/SSH from Azure Bastion only
-* With Azure Bastion we get RDP/SSH session over TLS on port 443 enabling you to traverse corporate firewalls securely
-* Azure Bastion is deployed in a dedicated subnet which must be named as AzureBastionSubnet. This subnet must be at least /27 or larger
-* Azure Bastion needs a static public IP (Standard SKU)
-
 ### Hybrid Connectivity
 
 * Hybrid (local datacenter and Azure Virtual Network) connectivity options -
@@ -245,6 +230,37 @@
   * **Resolution of on-premise names from Azure** - Cusomer managed DNS servers
   * **Resolution of Azure names from on-premise computers** - Customer managed DNS servers forwarding queries to Azure for name resolution
 * For the custom DNS changes to take effect, the VMs need to be restarted
+
+
+## Azure Bastion
+
+* Azure Bastion is a fully managed platform PaaS service from Azure that is hardened internally to provide you secure RDP/SSH connectivity
+* Azure Bastion is deployed per virtual network
+* Workings of Azure Bastion
+  * The Bastion host is deployed in the virtual network
+  * The user connects to the Azure portal using any HTML5 browser
+  * The user selects the virtual machine to connect to
+  * With a single click, the RDP/SSH session opens in the browser
+  * No public IP is required on the Azure VM.
+* NSGs are required on target subnets to allow RDP/SSH from Azure Bastion only
+* With Azure Bastion we get RDP/SSH session over TLS on port 443 enabling you to traverse corporate firewalls securely
+* Azure Bastion is deployed in a dedicated subnet which must be named as AzureBastionSubnet. This subnet must be at least /27 or larger
+* Azure Bastion needs a static public IP (Standard SKU)
+
+## Azure Load Balancer
+
+* Azure Load Balancer operates at layer four of the Open Systems Interconnection (OSI) model
+* Azure load balancer can be public or internal depending on whether a public or private IP is selected respectively
+* By default, Load balancer uses a Five-tuple hash. The hash includes:
+  * Source IP address
+  * Source port (changes for each new flow from the same source IP)
+  * Destination IP address
+  * Destination port
+  * IP protocol number to map flows to available servers
+* Affinity to a source IP address is created by using a two or three-tuple hash
+* Packets of the same flow arrive on the same instance behind the load-balanced front end
+* Azure Load Balancer has an idle timeout setting of 4 minutes to 30 minutes. By default, it is set to 4 minutes. To keep the session alive, use TCP keep-alive
+* 
 
 ## Azure Data Lake Storage
 
@@ -435,3 +451,17 @@
 * By default, Resource Manager creates the resources in parallel. It applies no limit to the number of resources deployed in parallel, other than the total limit of 800 resources in the template. The order in which they're created isn't guaranteed
 * To serially deploy more than one instance of a resource, set mode to serial and batchSize to the number of instances to deploy at a time. With serial mode, Resource Manager creates a dependency on earlier instances in the loop, so it doesn't start one batch until the previous batch completes
 * You specify that a resource is deployed after another resource by using the dependsOn element. To deploy a resource that depends on the collection of resources in a loop, provide the name of the copy loop in the dependsOn element
+
+
+## Script
+
+```
+#!/bin/bash
+
+sudo apt upgrade -y
+sudo apt install apache2 -y
+sudo ufw allow 'Apache'
+cd /var/www/html
+echo "<html><h1>Hello AWS Study - Welcome To My Webpage</h1><body><img src='myimg.jpg'></body></html>" > index.html
+
+```
