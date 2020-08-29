@@ -260,7 +260,101 @@
 * Affinity to a source IP address is created by using a two or three-tuple hash
 * Packets of the same flow arrive on the same instance behind the load-balanced front end
 * Azure Load Balancer has an idle timeout setting of 4 minutes to 30 minutes. By default, it is set to 4 minutes. To keep the session alive, use TCP keep-alive
-* 
+
+## Azure Firewall
+
+* Azure Firewall is a managed next-generation firewall that offers network address translation (NAT)
+* Azure Firewall bases packet filtering on Internet Protocol (IP) addresses and Transmission Control Protocol and User Datagram Protocol (TCP/UDP) ports, or on application-based HTTP(S) or SQL attributes
+* Azure Firewall also leverages Microsoft threat intelligence to identify malicious IP addresses
+* Use Azure Firewall alone when there are no web applications in the virtual network
+* Azure Firewall in front of Application Gateway when you want Azure Firewall to inspect and filter traffic before it reaches the Application Gateway
+* When used behind an Application Gateway, it doesn't do any SNAT as the traffic is coming from and going to a private IP. Therefore User Define Route (UDR) is required to route the traffic through the firewall
+* A VPN gateway or ExpressRoute gateway sits in front of Azure Firewall and/or Application Gateway, when the clients are on the on-premise network
+* Even if all clients are located on-premises or in Azure, both the Azure Application Gateway and the Azure Firewall need to have public IP addresses, so that Microsoft can manage the services
+* In a hub and spoke architecture, Azure Firewall, Application Gateway, and API Management gateway components uasually all go to the hub virtual network
+* Can be used with Kubernetes
+
+
+## Application Gateway
+
+* Azure Application Gateway is a managed web traffic load balancer and HTTP(S) full reverse proxy that can do secure socket layer (SSL) encryption and decryption
+* Application Gateway can make routing decisions based on additional attributes of an HTTP request, for example URI path or host headers. This type of routing is known as application layer (OSI layer 7) load balancing
+* Application Gateway also uses Web Application Firewall to inspect web traffic and detect attacks at the HTTP layer
+* Azure Application Gateway can be used as an internal application load balancer or as an internet-facing application load balancer. An internet-facing application gateway uses public IP addresses
+* Azure Web Application Firewall (WAF) on top of Azure Application Gateway is a security-hardened device with a limited attack surface that operates facing the public internet
+* Application Gateway doesn't act as a routing device with NAT, but behaves as a full reverse application proxy
+* Application Gateway terminates the web session from the client, and establishes a separate session with one of its backend servers
+* Use Application Gateway alone when there are only web applications in the virtual network, and network security groups (NSGs) provide sufficient output filtering
+* Azure Firewall and Application Gateway in parallel, the most common design, when you want Azure Application Gateway to protect HTTP(S) applications from web attacks, and Azure Firewall to protect all other workloads and filter outbound traffic
+* Application Gateway in front of Azure Firewall when you want Azure Firewall to inspect all traffic and WAF to protect web traffic, and the application needs to know the client's source IP address
+* Application Gateway in front of Azure Firewall captures the incoming packet's source IP address in the X-forwarded-for header. The source IP may be important to the backend servers in providing geolocation based services
+* Can be used with Kubernetes
+* Integrate reverse proxy services like API Management gateway with Application Gateway to provide functionality like API throttling or authentication proxy
+* An application gateway inserts four additional headers to all requests before it forwards the requests to the backend. These headers are x-forwarded-for, x-forwarded-proto, x-forwarded-port, and x-original-host
+* X-original-host header contains the original host header with which the request arrived
+* You can configure application gateway to modify request and response headers and URL by using Rewrite HTTP headers and URL or to modify the URI path by using a path-override setting. However, unless configured to do so, all incoming requests are proxied to the backend
+* If session affinity is enabled as an option, then it adds a gateway-managed affinity cookie
+* Application Gateway or WAF deployments under the autoscaling SKU can scale up or down based on changing traffic load patterns. Autoscaling also removes the requirement to choose a deployment size or instance count during provisioning
+* An Application Gateway or WAF deployment can span multiple Availability Zones, removing the need to provision separate Application Gateway instances in each zone with a Traffic Manager
+* Application Gateway v2 supports integration with Key Vault for server certificates that are attached to HTTPS enabled listeners
+* Application Gateway provides native support for WebSocket across all gateway sizes
+* To establish a WebSocket connection, a specific HTTP-based handshake is exchanged between the client and the server. If successful, the application-layer protocol is "upgraded" from HTTP to WebSockets, using the previously established TCP connection. Once this occurs, HTTP is completely out of the picture; data can be sent or received using the WebSocket protocol by both endpoints, until the WebSocket connection is closed
+* WebSocket has low overhead unlike HTTP and can reuse the same TCP connection for multiple request/responses resulting in a more efficient utilization of resources. WebSocket protocols are designed to work over traditional HTTP ports of 80 and 443
+* You can use application gateway to redirect traffic. It has a generic redirection mechanism which allows for redirecting traffic received at one listener to another listener or to an external site
+* A common redirection scenario for many web applications is to support automatic HTTP to HTTPS redirection to ensure all communication between application and its users occurs over an encrypted path
+* The following types of redirection are supported:
+  * 301 Permanent Redirect
+  * 302 Found
+  * 303 See Other
+  * 307 Temporary Redirect
+* Application Gateway redirection support offers the following capabilities:
+  * Global redirection - Redirects from one listener to another listener on the gateway. This enables HTTP to HTTPS redirection on a site.
+  * Path-based redirection - This type of redirection enables HTTP to HTTPS redirection only on a specific site area, for example a shopping cart area denoted by /cart/*.
+  * Redirect to external site - With this change, customers need to create a new redirect configuration object, which specifies the target listener or external site to which redirection is desired. The configuration element also supports options to enable appending the URI path and query string to the redirected URL
+* Advantages of TLS termination at the Gateway:
+  * Improved performance – The biggest performance hit when doing TLS decryption is the initial handshake. To improve performance, the server doing the decryption caches TLS session IDs and manages TLS session tickets. If this is done at the application gateway, all requests from the same client can use the cached values. If it’s done on the backend servers, then each time the client’s requests go to a different server the client must re‑authenticate. The use of TLS tickets can help mitigate this issue, but they are not supported by all clients and can be difficult to configure and manage
+  * Better utilization of the backend servers – SSL/TLS processing is very CPU intensive, and is becoming more intensive as key sizes increase. Removing this work from the backend servers allows them to focus on what they are most efficient at, delivering content
+  * Intelligent routing – By decrypting the traffic, the application gateway has access to the request content, such as headers, URI, and so on, and can use this data to route requests
+  * Certificate management – Certificates only need to be purchased and installed on the application gateway and not all backend servers. This saves both time and money
+* For the TLS connection to work, you need to ensure that the TLS/SSL certificate meets the following conditions:
+  * That the current date and time is within the "Valid from" and "Valid to" date range on the certificate
+  * That the certificate's "Common Name" (CN) matches the host header in the request. For example, if the client is making a request to https://www.contoso.com/, then the CN must be www.contoso.com
+* You may not want unencrypted communication to the backend servers. You may have security requirements, compliance requirements, or the application may only accept a secure connection. Azure Application Gateway has end-to-end TLS encryption to support these requirements
+* When configured with end-to-end TLS communication mode, Application Gateway terminates the TLS sessions at the gateway and decrypts user traffic. It then applies the configured rules to select an appropriate backend pool instance to route traffic to. Application Gateway then initiates a new TLS connection to the backend server and re-encrypts data using the backend server's public key certificate before transmitting the request to the backend. Any response from the web server goes through the same process back to the end user
+
+
+## Azure Front Door
+
+* If Azure Firewall is used in front of the Application Gateway to filter the maliscious traffic, the source client IP can be injected in the client request by placing Azure Front Door in front of the firewall
+* Azure Front Door functionality partly overlaps with Azure Application Gateway. For example, both services offer web application firewalling, SSL offloading, and URL-based routing. One main difference is that while Azure Application Gateway is inside a virtual network, Azure Front Door is a global, decentralized service
+* In some situations, you can simplify virtual network design by replacing Application Gateway with a decentralized Azure Front Door
+
+## API Management Gateway
+
+
+## Traffic Manager
+
+* Azure Traffic Manager is a DNS-based traffic load balancer that enables you to distribute traffic optimally to services across global Azure regions
+* Traffic Manager uses DNS to direct client requests to the most appropriate service endpoint based on a traffic-routing method and the health of the endpoints
+* Traffic Manager is resilient to failure, including the failure of an entire Azure region
+* Traffic Manager improves application responsiveness by directing traffic to the endpoint with the lowest network latency for the client
+* Azure Traffic Manager supports six traffic-routing methods to determine how to route network traffic to the various service endpoints
+  * **Priority** - Select Priority when you want to use a primary service endpoint for all traffic, and provide backups in case the primary or the backup endpoints are unavailable
+  * **Weighted** - Select Weighted when you want to distribute traffic across a set of endpoints, either evenly or according to weights, which you define. Following are some use cases:
+    * **Gradual application upgrade** - Allocate a percentage of traffic to route to a new endpoint, and gradually increase the traffic over time to 100%.
+    * **Application migration to Azure** - Create a profile with both Azure and external endpoints. Adjust the weight of the endpoints to prefer the new endpoints.
+    * **Cloud-bursting for additional capacity** - Quickly expand an on-premises deployment into the cloud by putting it behind a Traffic Manager profile. When you need extra capacity in the cloud, you can add or enable more endpoints and specify what portion of traffic goes to each endpoint.
+  * **Performance** - Select Performance when you have endpoints in different geographic locations and you want end users to use the "closest" endpoint in terms of the lowest network latency
+  * **Geographic** - Select Geographic so that users are directed to specific endpoints (Azure, External, or Nested) based on which geographic location their DNS query originates from. This empowers Traffic Manager customers to enable scenarios where knowing a user’s geographic region and routing them based on that is important. Examples include complying with data sovereignty mandates, localization of content & user experience and measuring traffic from different regions
+  * **Multivalue** - Select MultiValue for Traffic Manager profiles that can only have IPv4/IPv6 addresses as endpoints. When a query is received for this profile, all healthy endpoints are returned
+  * **Subnet** - Select Subnet traffic-routing method to map sets of end-user IP address ranges to a specific endpoint within a Traffic Manager profile. When a request is received, the endpoint returned will be the one mapped for that request’s source IP address
+* A single Traffic Manager profile can use only one traffic routing method. You can select a different traffic routing method for your profile at any time. Changes are applied within one minute, and no downtime is incurred
+* Traffic-routing methods can be combined by using nested Traffic Manager profiles. Nesting enables sophisticated and flexible traffic-routing configurations that meet the needs of larger, complex applications
+* Traffic Manager does not receive DNS queries directly from clients. Rather, DNS queries come from the recursive DNS service that the clients are configured to use. Therefore, the IP address used to determine the 'closest' endpoint is not the client's IP address, but it is the IP address of the recursive DNS service. In practice, this IP address is a good proxy for the client
+
+## Azure Monitor
+
+
 
 ## Azure Data Lake Storage
 
