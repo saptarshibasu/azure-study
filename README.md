@@ -565,6 +565,8 @@
 
 ## Script
 
+### Deploy A Simple Web Server
+
 ```
 #!/bin/bash
 
@@ -572,6 +574,52 @@ sudo apt upgrade -y
 sudo apt install apache2 -y
 sudo ufw allow 'Apache'
 cd /var/www/html
-echo "<html><h1>Hello AWS Study - Welcome To My Webpage</h1><body><img src='myimg.jpg'></body></html>" > index.html
+echo "<html><h1>Hello AWS Study - Welcome To My Webpage</h1><body>`hostnamectl`</body></html>" > index.html
 
+```
+
+### Install CNI Plugin for Installing Kubernetes
+
+```
+#!/bin/bash
+
+sudo apt upgrade -y
+curl https://raw.githubusercontent.com/Azure/azure-container-networking/v1.1.7/scripts/install-cni-plugin.sh > install-cni-plugin.sh
+chmod +x install-cni-plugin.sh
+sudo ./install-cni-plugin.sh v1.1.7 v0.8.7
+
+```
+
+### Test ARM Template
+
+#### ARM Test Toolkit
+
+Download ARM Test Toolkit: https://aka.ms/arm-ttk-latest
+
+```
+cd arm-ttk
+Get-ChildItem *.ps1, *.psd1, *.ps1xml, *.psm1 -Recurse | Unblock-File
+Import-Module ./arm-ttk.psd1
+Test-AzTemplate -TemplatePath /path/to/template
+```
+
+#### ARM Validation with WhatIf
+
+```
+Install-Module -Name Az -Force
+```
+
+```
+Connect-AzAccount
+```
+
+```
+New-AzResourceGroup `
+  -Name rg-kube-dev-001 `
+  -Location eastus
+
+New-AzResourceGroupDeployment `
+  -Whatif `
+  -ResourceGroupName rg-kube-dev-001 `
+  -TemplateUri "D:\gitrepo\kubernetes-study\lab\arm\azureDeploy.json"
 ```
