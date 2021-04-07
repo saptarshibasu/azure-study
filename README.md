@@ -20,16 +20,13 @@
 * The resource group does not require the resources to be created in the same region
 * It is a good practice to create the resources in the same region as the resource group because 
   * It is convenient to inherit the region from the resource group
-  * If the resource group's region is temporarily unavailable, you can't update resources in the resource group because the metadata is unavailable even though the resources in a different region may be up and running
+  * If the resource group's region is temporarily unavailable, you can't update resources in the resource group because the metadata is unavailable even though the resources may be up and running
 * RBAC can be used to allow an application to access all resources in a resource group
 * Naming convention - `rg-<App / Service name>-<Subscription type>-<###>` e.g. `rg-sharepoint-prod-001`
 * Two deployment models:
   * Classic - Legacy model
   * Resource Manager - Introduction of the resource group concept for better manageability
-* There are three scenarios to be aware of:
-  * Cloud Services (serverless services) doesn't support Resource Manager deployment model
-  * Virtual machines, storage accounts, and virtual networks support both Resource Manager and classic deployment models
-  * All other Azure services support Resource Manager
+* Cloud Services (serverless services) don't support Resource Manager deployment model
 
 ## Virtual Networking
 
@@ -60,6 +57,7 @@
   * VPN Gateways
   * Application Gateways
   * Azure Firewall
+  * Bastion Host
 * Public IP Address SKUs
   * Basic SKU
     * No longer default
@@ -80,8 +78,8 @@
 
 * Hybrid (local datacenter and Azure Virtual Network) connectivity options -
   * **Site-to-Site (S2S)** - Established between your on-premises VPN device and an Azure VPN Gateway that is deployed in a virtual network
-  * **Point to Site (P2S)** - Established between a virtual network and a single computer in your network
-  * **Express Route** - Established between your network and Azure, through an ExpressRoute partner. This connection is private. Traffic does not go over the internet
+  * **Point to Site (P2S)** - Established between a Azure VPN Gateway and a single computer in your network
+  * **Express Route** - Established between your network and Azure Expressroute Gateway, through an ExpressRoute partner. This connection is private. Traffic does not go over the internet
 * **Site-to-Site (S2S)**
   * A VPN Gateway needs to be created in Azure with a public IP assigned to it
   * The enterprise datacenter needs to have a VPN device with a public IP assigned and it cannot be behind a NAT
@@ -100,11 +98,7 @@
 * **Express Route**
   * This allows connections to offer more reliability, faster speeds, consistent latencies, and higher security than typical connections over the Internet
   * In an ExpressRoute connection, the virtual network gateway is configured with the gateway type 'ExpressRoute', rather than 'Vpn'
-  * Connectivity can be from:
-    * an any-to-any (IP VPN) network
-    * a point-to-point Ethernet network
-    * a virtual cross-connection through a connectivity provider at a co-location facility
-  * While traffic that travels over an ExpressRoute circuit is not encrypted by default, it is possible create a solution that allows you to send encrypted traffic over an ExpressRoute circuit
+  * While traffic that travels over an ExpressRoute circuit is not encrypted by default, it is possible to create a solution that allows you to send encrypted traffic over an ExpressRoute circuit
   * Microsoft uses BGP, an industry standard dynamic routing protocol, to exchange routes between your on-premises network, your instances in Azure, and Microsoft public addresses
   * ExpressRoute connections enable access to the following services:
     * **Microsoft Azure services** (private peering)
@@ -371,6 +365,8 @@
 ## Azure Monitor
 
 
+## Security Center
+
 
 ## Azure Data Lake Storage
 
@@ -530,6 +526,43 @@
   * Leases enable different synchronization strategies to be supported, including exclusive write / shared read, exclusive write / exclusive read and shared write / exclusive read. Where a lease exists the storage service enforces exclusive writes (put, set and delete operations) however ensuring exclusivity for read operations requires the developer to ensure that all client applications use a lease ID and that only one client at a time has a valid lease ID
   * Read operations that do not include a lease ID result in shared reads.
 * The Table service uses optimistic concurrency checks as the default behavior when you are working with entities
+
+## Azure Event Hub
+
+* Event publishers can publish events using HTTPS or AMQP 1.0 or Apache Kafka (1.0 and above)
+* All Event Hubs consumers connect via the AMQP 1.0 session. All Kafka consumers connect via the Kafka protocol 1.0 and later
+* Kafka `Cluster` is equivalent to EventHub `Namespace`
+* Scale in Event Hubs is controlled by the number of `throughput units` provisioned. A single throughput lets you:
+  * Ingress: Up to 1 MB per second or 1000 events per second (whichever comes first)
+  * Egress: Up to 2 MB per second or 4096 events per second
+* Beyond the capacity of the purchased throughput units, ingress is throttled and a ServerBusyException is returned. Egress does not produce throttling exceptions, but is still limited to the capacity of the purchased throughput units
+* Up to 20 throughput units can be purchased for an Event Hubs namespace and are shared across all event hubs in that namespace
+* Event Hubs can automatically scale up throughput units when the throughput limit is reahed if the `Auto-Inflate` feature is used
+* With Event Hub, it is possible to write with any of the three supported protocols and read with any another
+* Unlike Kafka, Log compaction is not supported by Event Hub (Cosmos DB should be used for such requirements)
+* Event Hubs `Capture` enables specifying an Azure Blob storage account and container, or an Azure Data Lake Storage account, which are used to store the captured data beyond the Event Hub retention period
+* Captured data is written in Apache Avro format
+* Event Hubs Capture enables setting up a window to control capturing. This window is a minimum size and time configuration with a "first wins policy," meaning that the first trigger encountered causes a capture operation. If there is a fifteen-minute, 100 MB capture window and 1 MB worth of data is sent per second, the size window triggers before the time window
+* Each partition captures independently and writes a completed block blob at the time of capture, named for the time at which the capture interval was encountered
+* The storage naming convention is as follows:
+```
+{Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}
+
+https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhub/0/2017/12/08/03/03/17.avro
+```
+* In the event that the Azure storage blob is temporarily unavailable, Event Hubs Capture will retain the data for the data retention period configured on the event hub and back fill the data once the storage account is available again
+* Event Hubs writes empty files when there is no data
+* Event Hubs Capture is metered similarly to throughput units: as an hourly charge. The charge is directly proportional to the number of throughput units purchased for the namespace
+* Retention period:
+  * The default value and shortest possible retention period is 1 day (24 hours)
+  * For Event Hubs Standard, the maximum retention period is 7 days
+  * For Event Hubs Dedicated, the maximum retention period is 90 days
+  * If the retention period is changed, it applies to all messages including messages that are already in the event hub
+* The number of partitions is specified at creation and must be between 1 and 32 in Event Hubs Standard. The partition count can be up to 2000 partitions per Capacity Unit in Event Hubs Dedicated
+* If you don't specify a partition key when publishing an event, a round-robin assignment is used
+* Azure Storage Blob is used as a checkpoint store
+* By default, the function that processes the events is called sequentially for a given partition. Subsequent events and calls to this function from the same partition queue up behind the scenes as the event pump continues to run in the background on other threads. Events from different partitions can be processed concurrently and any shared state that is accessed across partitions have to be synchronized
+* If high availability is most important, it's better not to target a specific partition (using partition ID/key). Using partition ID/key downgrades the availability of an event hub to partition-level because in the absence of a partition key Event Hub sends the event to a different partition if the first attempted partition is unavailable
 
 ## ARM Template
 
