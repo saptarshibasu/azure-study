@@ -3,8 +3,42 @@
 ## Table of Content
 
 [Basics](#basics)
+
 [Resource Groups](#resource-groups)
+
 [Virtual Networking](#virtual-networking)
+
+[Azure Bastion](#azure-bastion)
+
+[Azure Load Balancer](#azure-load-balancer)
+
+[Azure Firewall](#azure-firewall)
+
+[Application Gateway](#application-gateway)
+
+[Azure Front Door](#azure-front-door)
+
+[API Management Gateway](#api-management-gateway)
+
+[Traffic Manager](#traffic-manager)
+
+[Azure Monitor](#azure-monitor)
+
+[Security Center](#security-center)
+
+[Azure Blob Storage](#azure-blob-storage)
+
+[Azure Event Hub](#azure-event-hub)
+
+[Azure Event Grid](#azure-event-grid)
+
+[Azure Service Bus](#azure-service-bus)
+
+[Azure Stream Analytics](#azure-stream-analytics)
+
+[ARM Template](#arm-template)
+
+[Script](#script)
 
 
 ## Basics
@@ -537,7 +571,7 @@
   * Egress: Up to 2 MB per second or 4096 events per second
 * Beyond the capacity of the purchased throughput units, ingress is throttled and a ServerBusyException is returned. Egress does not produce throttling exceptions, but is still limited to the capacity of the purchased throughput units
 * Up to 20 throughput units can be purchased for an Event Hubs namespace and are shared across all event hubs in that namespace
-* Event Hubs can automatically scale up throughput units when the throughput limit is reahed if the `Auto-Inflate` feature is used
+* Event Hubs can automatically scale up throughput units when the throughput limit is reached if the `Auto-Inflate` feature is used
 * With Event Hub, it is possible to write with any of the three supported protocols and read with any another
 * Unlike Kafka, Log compaction is not supported by Event Hub (Cosmos DB should be used for such requirements)
 * Event Hubs `Capture` enables specifying an Azure Blob storage account and container, or an Azure Data Lake Storage account, which are used to store the captured data beyond the Event Hub retention period
@@ -562,7 +596,52 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
 * If you don't specify a partition key when publishing an event, a round-robin assignment is used
 * Azure Storage Blob is used as a checkpoint store
 * By default, the function that processes the events is called sequentially for a given partition. Subsequent events and calls to this function from the same partition queue up behind the scenes as the event pump continues to run in the background on other threads. Events from different partitions can be processed concurrently and any shared state that is accessed across partitions have to be synchronized
-* If high availability is most important, it's better not to target a specific partition (using partition ID/key). Using partition ID/key downgrades the availability of an event hub to partition-level because in the absence of a partition key Event Hub sends the event to a different partition if the first attempted partition is unavailable
+* If high availability is most important, it's better not to target a specific partition (using partition ID/key). Using partition ID/key downgrades the availability of an event hub to partition-level because in the absence of a partition key Event Hub sends the event to a different partition if the first attempted partition is unavailable. This feature is useful in the following scenarios:
+  * You don't want a subscription to receive all messages sent to a topic
+  * You want to mark up messages with extra metadata when they pass through a subscription
+* Service Bus supports standard AMQP 1.0 and HTTP or REST protocols and their respective security facilities, including transport-level security (TLS). Clients can be authorized for access using Shared Access Signature or Azure Active Directory role-based security
+* At least once delivery
+* Patterns
+  * When an incoming torrent of ingested events far exceeds the capacity of Azure Service Bus or Azure Event Grid, a routing pattern can be used where an Event Hub can buffer the event data and an Azure function can route the events to the appropriate Azure Service Bus based on the metadata on the messages
+  * For scenarios where an event stream needs to be accessed repeatedly by consumers residing in a different region, unidirectional replication to a secondary Event Hub in the consumer region using an Azure function is preferred
+  * Several of Azure's cloud-native analytics services like Azure Stream Analytics or Azure Synapse work best with streamed or pre-batched data served up from Azure Event Hubs, and Azure Event Hubs also enables integration with several open-source analytics packages such as Apache Samza, Apache Flink, Apache Spark, and Apache Storm. If a solution primarily uses Service Bus or Event Grid, these events can easily be made accessible to such analytics systems and also for archival with Event Hubs Capture if we funnel them into Event Hub using Azure function
+  * For simple stateless replication of events use Azure function. For more complex stateful replication of events, use Azure Stream Analytics. Transformation, batching, and enrichment are usually best done with Azure Stream Analytics
+  * Merge pattern - Each event originally produced into one of the Event Hubs included in the scheme is replicated to the other Event Hubs. As events are replicated, they are annotated such that they are subsequently ignored by the replication process of the replication target. The results of using the merge pattern are two or more Event Hubs that will contain the same set of events in an eventually consistent fashion
+* Geo-Disaster Recovery allows creating a primary-secondary replication pairing. In case of a disaster, an instantaneous one-time failover will happen from primary to secondary and the pairing will break
+
+## Azure Event Grid
+
+![Event Grid Sources & Handlers](event_grid_source_handler.png)
+
+* At least once delivery
+* Push model
+* Reactive Programming
+* Discrete events
+* The maximum allowed size for an event is 1 MB. Events over 64 KB are charged in 64-KB increments
+* A system topic in Event Grid represents one or more events published by Azure services such as Azure Storage and Azure Event Hubs. Only Azure services can publish events to system topics
+* Custom topics are application and third-party topics
+* An event domain is a management tool for large numbers of Event Grid topics related to the same application. An even domain may contain a maximum of 100,000 topics. Domains also provide authorization and authentication control over each topic
+
+## Azure Service Bus
+
+* Once accepted by the broker, the message is always held durably in triple-redundant storage, spread across availability zones if the namespace is zone-enabled
+* Service Bus never leaves messages in memory or volatile storage after they've been reported to the client as accepted
+* Messages are delivered in pull mode, only delivering messages when requested. Unlike the busy-polling model of some other cloud queues, the pull operation can be long-lived and only complete once a message is available
+* While a queue is often used for point-to-point communication, topics are useful in publish/subscribe scenarios
+* A subscription rule has a filter to define a condition for the message to be copied into the subscription and an optional action that can modify message metadata
+* Enterprise Messaging
+* Two different modes in which Service Bus receives messages:
+  * **Receive and delete** (At Most Once) - In this mode, when Service Bus receives the request from the consumer, it marks the message as being consumed and returns it to the consumer application. Message loss is possible in case of system crash
+  * **Peek lock** (default - Al least Once) - Message is read in two stages. Message loss doesn't occur, but duplicate message is possible
+* In a publish-subscribe scenario, producers produce to topic nd consumers consume from subscriptions which support competing consumer pattern. Also, subscriptions support various filtering rules allowing consumers to receive only a subset of the messages
+* Three types of filters:
+  * **SQL Filter** -
+  * **Boolean Filter** - 
+  * **Correlation Filter** - 
+* 
+
+## Azure Stream Analytics
+
 
 ## ARM Template
 
