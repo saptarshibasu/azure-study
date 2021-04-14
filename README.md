@@ -84,7 +84,7 @@
   * Internet resources to communicate inbound to the Azure resources
   * Azure resources to communicate outbound to the internet
   * Azure resources to communicate outbound to the Azure public facing services
-* A resource without a public IP assigned can communicate outbound. Its address is network address translated by Azure to an unpredictable public address, by default
+* A resource without a public IP assigned can communicate outbound. Its address is network address translated by Azure to an unpredictable public address, by default. However, at scale, a NAT Gateway is recommended to avoid TCP timeout error due to unavailability of port on Azure assigned public IP
 * Public IP address can be assigned to:
   * Virtual Machine NIC
   * Public facing Load Balancers
@@ -105,7 +105,7 @@
     * Secure by default and closed to all inbound traffic
     * Assigned to NICs, Standard LBs, or App GWs
     * Support Availability Zones and can be zone-redundant or zonal
-* Inbound communication with a Standard SKU resource fails until you create and associate a network security group and explicitly allow the desired inbound traffic
+* Inbound communication with a Standard SKU IP address fails until a network security group is created and associated explicitly to allow the desired inbound traffic
 * Virtual Network is tied to a specific region and a specific subscription
 
 ### Hybrid Connectivity
@@ -140,7 +140,7 @@
   * Provides Layer 3 connectivity
   * Provides connectivity to all regions in the geopolitical region. But, with the ExpressRoute Premium add-on, it provides connectivity accross all regions
   * Provides built-in redundancy
-  * You must reserve a /29 subnet or two /30 subnets for routing interfaces. While you can create a gateway subnet as small as /29, we recommend that you create a gateway subnet of /27 or larger (/27, /26 etc.)
+  * A few blocks of (private or public) IP addresses need to be reserved to configure routing between the private network and Microsoft's Enterprise edge (MSEEs) routers. A minimum /29 subnet or two /30 subnets must be reserved for routing interfaces. The subnet IP range should not overlap with IP ranges used to create virtual networks on Azure
   * **Unlimited**
     * Speeds from 50 Mbps to 10 Gbps
     * Unlimited Inbound data transfer
@@ -150,24 +150,22 @@
     * Speeds from 50 Mbps to 10 Gbps
     * Unlimited Inbound data transfer
     * Outbound data transfer charged at a predetermined rate per GB
-    * Lower monthly fee  
-* You can configure your virtual network to use both **Site-to-Site** and **Point-to-Site** concurrently, as long as you create your Site-to-Site connection using a **route-based** VPN type for your gateway
-* The local network gateway typically refers to your on-premises location. You give the site a name by which Azure can refer to it, then specify the IP address of the on-premises VPN device to which you will create a connection. You also specify the IP address prefixes that will be routed through the VPN gateway to the VPN device
+    * Lower monthly fee
+  * Gateway Types
+    * **Vpn** - To send encrypted traffic across the public Internet, you use the gateway type 'Vpn'. This is also referred to as a VPN gateway. Site-to-Site, Point-to-Site, and VNet-to-VNet connections all use a VPN gateway.
+    * **ExpressRoute** - To send network traffic on a private connection, you use the gateway type 'ExpressRoute'. This is also referred to as an ExpressRoute gateway and is the type of gateway used when configuring ExpressRoute.
+* Each virtual network, including a peered virtual network, can have only one virtual network gateway of each type - Vpn and ExpressRoute
+* A virtual network can use its gateway to connect to an on-premises network
 
 ### Peering
 
 * Peerling allows data transfer between virtual networks across Azure subscriptions, Azure Active Directory tenants, deployment models, and Azure regions
 * For peered virtual networks, resources in either virtual network can directly connect with resources in the peered virtual network
-* Azure supports the following types of peering:
-  * Virtual network peering: Connect virtual networks within the same Azure region
-  * Global virtual network peering: Connecting virtual networks across Azure regions
 * Network traffic between peered virtual networks is private. Traffic between the virtual networks is kept on the Microsoft backbone network. No public Internet, gateways, or encryption is required in the communication between the virtual networks
 * No bandwidth loss when peering with Virtual Network in the same region
 * Peered Virtual Networks must be in one single cloud (i.e. either Azure public cloud regions, or China cloud regions, or Government cloud regions)
 * Peered Virtual Networks must have non-overlapping IP address ranges
 * Once a virtual network is peered with another virtual network, the addresss space cannot be changed. Workaround - remove peering, adjust address space, add peering back
-* Each virtual network, including a peered virtual network, can have only one virtual network gateway of each type - Vpn and ExpressRoute
-* A virtual network can use its gateway to connect to an on-premises network
 * You can also configure the gateway in the peered virtual network as a transit point to an on-premises network. In this case, the virtual network that is using a remote gateway can't have its own gateway. A virtual network has only one gateway. The gateway is either a local or remote gateway in the peered virtual network
 * When you create a virtual network gateway, you need to specify the gateway SKU that you want to use. Select the SKU that satisfies your requirements based on the types of workloads, throughputs, features, and SLAs
 * When you create the virtual network gateway for a VPN gateway configuration, you must specify a VPN type. The VPN type that you choose depends on the connection topology that you want to create. For example, a P2S connection requires a RouteBased VPN type. A VPN type can also depend on the hardware that you are using. S2S configurations require a VPN device. Some VPN devices only support a certain VPN type
@@ -207,7 +205,7 @@
   * If the address is within the on-premises address prefixes on BGP published routes (BGP or Local Site Network (LSN) for S2S) - route to Gateway
   * If the address is not part of the VNet or the BGP or LSN routes - route to internet via NAT
   * If destination is an Azure data center address and ER public peering is enabled - it is routed to the Gateway
-* All resources in the Virtual Network have outbound internet connectivity by default. Here a private IP is SNAT to a public IP selected by Azure
+* All resources in the Virtual Network have outbound internet connectivity by default. Here a private IP is SNAT to a public IP selected by Azure. However, at high scale, this default behaviour may occasionally fail due to unavailability of free port in public IP address selected by Azure giving frequent TCP timeout error. Therefore, in such circumstances, a **NAT Gateway** should be used for the subnet
 * For Inbound connectivity a public IP is necessary
 * Options for providing inbound internet connection
   * Adding a public IP to the service (not recommended)
@@ -235,7 +233,7 @@
   * BGP route
   * System route
 * Deploy a virtual appliance into a different subnet than the resources that route through the virtual appliance are deployed in. Deploying the virtual appliance to the same subnet, then applying a route table to the subnet that routes traffic through the virtual appliance, can result in routing loops, where traffic never leaves the subnet
-* NAT Gateway is a completely managed service throgh which goes all the outbound connections to the internet. The NAT gateway does the address translation from the private IP to a fixed range of public IP. This helps in whitelisting IPs
+* NAT Gateway is a completely managed service through which goes all the outbound connections to the internet. The NAT gateway does the address translation from the private IP to a fixed range of public IP. This helps in whitelisting IPs
 * Load Balancer is for the inbound connections
 
 ### DNS
@@ -621,6 +619,9 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
 * A system topic in Event Grid represents one or more events published by Azure services such as Azure Storage and Azure Event Hubs. Only Azure services can publish events to system topics
 * Custom topics are application and third-party topics
 * An event domain is a management tool for large numbers of Event Grid topics related to the same application. An even domain may contain a maximum of 100,000 topics. Domains also provide authorization and authentication control over each topic
+* Event sources send events to Azure Event Grid in an array, which can have several event objects
+* When posting events to an event grid topic, the array can have a total size of up to 1 MB. Each event in the array is limited to 1 MB
+* If an event or the array is greater than the size limits, you receive the response 413 Payload Too Large
 
 ## Azure Service Bus
 
@@ -735,3 +736,8 @@ New-AzResourceGroupDeployment `
   -ResourceGroupName rg-kube-dev-001 `
   -TemplateUri "D:\gitrepo\kubernetes-study\lab\arm\azureDeploy.json"
 ```
+
+
+## References
+
+* [How to get better outbound connectivity using Azure NAT Gateway | Azure Friday](https://www.youtube.com/watch?v=2Ng_uM0ZaB4)
