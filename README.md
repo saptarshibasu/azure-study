@@ -8,6 +8,8 @@
 
 [Virtual Networking](#virtual-networking)
 
+[Virtual Machine](#virtual-machine)
+
 [Azure Bastion](#azure-bastion)
 
 [Azure Load Balancer](#azure-load-balancer)
@@ -26,7 +28,7 @@
 
 [Security Center](#security-center)
 
-[Azure Blob Storage](#azure-blob-storage)
+[Azure Storage](#azure-storage)
 
 [Azure Event Hub](#azure-event-hub)
 
@@ -60,7 +62,6 @@
 * Two deployment models:
   * Classic - Legacy model
   * Resource Manager - Introduction of the resource group concept for better manageability
-* Cloud Services (serverless services) don't support Resource Manager deployment model
 
 ## Virtual Networking
 
@@ -93,13 +94,13 @@
   * Azure Firewall
   * Bastion Host
 * Public IP Address SKUs
-  * Basic SKU
+  * **Basic SKU**
     * No longer default
     * Assigned with static or dynamic allocation method
     * Open by default (NSGs recommended)
     * Assigned to any Azure resource that allows a Public IP
     * Do not support Availability Zones
-  * Standard SKU
+  * **Standard SKU**
     * Preferred method
     * Always use static allocation
     * Secure by default and closed to all inbound traffic
@@ -124,7 +125,7 @@
   * the connection is encrypted over the internet
   * Users use the native VPN clients on Windows and Mac devices for P2S
   * The Aggregate Throughput Benchmark for a VPN Gateway is S2S + P2S combined. If you have a lot of P2S connections, it can negatively impact a S2S connection due to throughput limitations
-  * The Aggregate Throughput Benchmark is not a guaranteed throughput due to Internet traffic conditions and your application behaviors
+  * The Aggregate Throughput (upto 100 Mbps) Benchmark is not a guaranteed throughput due to Internet traffic conditions and your application behaviors
 * P2S Possible protocols:
   * **OpenVPN® Protocol**, an SSL/TLS based VPN protocol. OpenVPN can be used to connect from Android, iOS (versions 11.0 and above), Windows, Linux and Mac devices (OSX versions 10.13 and above)
   * **Secure Socket Tunneling Protocol (SSTP)**, a Microsoft proprietary TLS-based VPN protocol. Azure supports all versions of Windows that have SSTP (Windows 7 and later)
@@ -154,8 +155,11 @@
   * Gateway Types
     * **Vpn** - To send encrypted traffic across the public Internet, you use the gateway type 'Vpn'. This is also referred to as a VPN gateway. Site-to-Site, Point-to-Site, and VNet-to-VNet connections all use a VPN gateway.
     * **ExpressRoute** - To send network traffic on a private connection, you use the gateway type 'ExpressRoute'. This is also referred to as an ExpressRoute gateway and is the type of gateway used when configuring ExpressRoute.
-* Each virtual network, including a peered virtual network, can have only one virtual network gateway of each type - Vpn and ExpressRoute
-* A virtual network can use its gateway to connect to an on-premises network
+* A VPN gateway is a specific type of virtual network gateway that is used to send encrypted traffic between an Azure virtual network and an on-premises location over the public Internet
+* Each virtual network, including a peered virtual network, can have only one virtual network gateway
+* A VPN gateway can be of two types - Vpn and ExpressRoute
+* The throughput, SLA, feature etc. of the VPN gateway is determined by the SKU of the gateway
+* The maximum aggregate throughput benchmark - 10 gbps
 
 ### Peering
 
@@ -166,17 +170,14 @@
 * Peered Virtual Networks must be in one single cloud (i.e. either Azure public cloud regions, or China cloud regions, or Government cloud regions)
 * Peered Virtual Networks must have non-overlapping IP address ranges
 * Once a virtual network is peered with another virtual network, the addresss space cannot be changed. Workaround - remove peering, adjust address space, add peering back
-* You can also configure the gateway in the peered virtual network as a transit point to an on-premises network. In this case, the virtual network that is using a remote gateway can't have its own gateway. A virtual network has only one gateway. The gateway is either a local or remote gateway in the peered virtual network
-* When you create a virtual network gateway, you need to specify the gateway SKU that you want to use. Select the SKU that satisfies your requirements based on the types of workloads, throughputs, features, and SLAs
-* When you create the virtual network gateway for a VPN gateway configuration, you must specify a VPN type. The VPN type that you choose depends on the connection topology that you want to create. For example, a P2S connection requires a RouteBased VPN type. A VPN type can also depend on the hardware that you are using. S2S configurations require a VPN device. Some VPN devices only support a certain VPN type
-* if you want to create a S2S VPN gateway connection and a P2S VPN gateway connection for the same virtual network, you would use VPN type RouteBased because P2S requires a RouteBased VPN type. You would also need to verify that your VPN device supported a RouteBased VPN connection
-* To confirm that virtual networks are peered, you can check effective routes. Check routes for a network interface in any subnet in a virtual network. If a virtual network peering exists, all subnets within the virtual network have routes with next hop type VNet peering, for each address space in each peered virtual network
+* The gateway in the peered virtual network can be configured as a transit point to an on-premises network. In this case, the virtual network that is using a remote gateway can't have its own gateway
 * Transitive peering is not supported. If A is peered with B, and B with C, A cannot talk to C unless explicitly peered with C
-* Service chaining enables you to direct traffic from one virtual network to a virtual appliance or gateway in a peered network through user-defined routes
-* Allow forwarded traffic - This flag, if enabled when creating a peering, allows traffic forwarded by (not originated from) the peered virtual network
-* Allow gateway transit - This flag, if enabled when creating a peering, allows the traffic from the peered network flow through the gateway of this virtual network. The peered network canot have its gateway configured. The peered network will then have the flag "Use remote gateways"
-* Use remote gateways: Check this box to allow traffic from this virtual network to flow through a virtual network gateway attached to the virtual network you're peering with
 * In a hub and spoke network topology, the hub virtual network can have a VPN Gateway that allows trafiic from the spoke virtual networks to the on-premise virtual networks. The same VPN Gateway can also allow traffic between the spoke virtual networks that are not directly peered with each other
+* Traffice between spokes not directly peered can be allowed by the following config:
+  * Allow both the **spoke-to-hub** peering connections to use the remote virtual network's (hub network) gateway
+  * Allow forwarded traffic from remote virtual network in both the **spoke-to-hub** peering connections
+  * Add UDR in the spoke VNets to route the traffic meant for the other spoke to the hub virtual network gateway or other virtual appliance
+  * Allow traffic forwraded from remote virtual network in all the peering connections
 * The benefits of hub and spoke topology include:
   * Cost savings by centralizing services that can be shared by multiple workloads, such as network virtual appliances (NVAs) and DNS servers, in a single location
   * Overcome subscriptions limits by peering virtual networks from different subscriptions to the central hub
@@ -185,26 +186,16 @@
   * Workloads deployed in different environments, such as development, testing, and production, that require shared services such as DNS, IDS, NTP, or AD DS. Shared services are placed in the hub virtual network, while each environment is deployed to a spoke to maintain isolation
   * Workloads that do not require connectivity to each other, but require access to shared services
   * Enterprises that require central control over security aspects, such as a firewall in the hub as a DMZ, and segregated management for the workloads in each spoke
-* Throughput and max number of connections are determined by the generation and SKU of the VPN Gateway
-* The best performance is obtained when we used GCMAES256 algorithm for both IPsec Encryption and Integrity
 
 ### Routing
 
-* BGP enables the Azure VPN Gateways and your on-premises VPN devices, called BGP peers or neighbors, to exchange "routes" that will inform both gateways on the availability and reachability for those prefixes to go through the gateways or routers involved. BGP can also enable transit routing among multiple networks by propagating routes a BGP gateway learns from one BGP peer to all other BGP peers
-* BGP is an optional feature you can use with Azure Route-Based VPN gateways. You should also make sure your on-premises VPN devices support BGP before you enable the feature. You can continue to use Azure VPN gateways and your on-premises VPN devices without BGP. It is the equivalent of using static routes (without BGP) vs. using dynamic routing with BGP between your networks and Azure
-* BGP supports multiple tunnels between a VNet and an on-premises site with automatic failover
-* This can enable transit routing with Azure VPN gateways between your on-premises sites or across multiple Azure Virtual Networks
-* BGP is supported on Route-Based VPN gateways only
-* You can use BGP for both cross-premises connections and VNet-to-VNet connections
+* BGP can be used to enable the Azure VPN Gateways and on-premises VPN devices, called BGP peers or neighbors, to exchange "routes" that will inform both gateways on the availability and reachability for those prefixes to go through the gateways or routers involved
 * Every subnet has a route table that contains the following minimum routes:
-  * **LocalVNet** - Route for local addresses (no next-hop value)
-  * **On-Premises** - Route for defined on-premises address space (VNet Gateway is the next hop address)
+  * **LocalVNet** - Route for local addresses (Virtual Network is the next hop address)
   * **Internet** - Route for all traffic destined to the internet (Internet Gateway is the next hop address)
-* Default routing in a subnet (can be overriden by User Defined Routes (UDR))
-  * If address is within the VNet address prefix - route to local VNet
-  * If the address is within the on-premises address prefixes on BGP published routes (BGP or Local Site Network (LSN) for S2S) - route to Gateway
-  * If the address is not part of the VNet or the BGP or LSN routes - route to internet via NAT
-  * If destination is an Azure data center address and ER public peering is enabled - it is routed to the Gateway
+  * **Reserved IP addresses** - Route for all traffic destined to the reserved IP addresses (Next hop address is None. Thus all packets will be dropped)
+* Default routing in a subnet (can be overridden by User Defined Routes (UDR))
+  * If destination is in the on-premises address space - it is routed to the Virtual Network Gateway
 * All resources in the Virtual Network have outbound internet connectivity by default. Here a private IP is SNAT to a public IP selected by Azure. However, at high scale, this default behaviour may occasionally fail due to unavailability of free port in public IP address selected by Azure giving frequent TCP timeout error. Therefore, in such circumstances, a **NAT Gateway** should be used for the subnet
 * For Inbound connectivity a public IP is necessary
 * Options for providing inbound internet connection
@@ -256,6 +247,9 @@
   * **Resolution of on-premise names from Azure** - Cusomer managed DNS servers
   * **Resolution of Azure names from on-premise computers** - Customer managed DNS servers forwarding queries to Azure for name resolution
 * For the custom DNS changes to take effect, the VMs need to be restarted
+
+## Virtual Machine
+
 
 
 ## Azure Bastion
@@ -396,9 +390,7 @@
 
 ## Azure Monitor
 
-
 ## Security Center
-
 
 ## Azure Data Lake Storage
 
@@ -459,52 +451,83 @@
   * IoT structure - {Region}/{SubjectMatter(s)}/{yyyy}/{mm}/{dd}/{hh}/
   * Batch jobs structure - {Region}/{SubjectMatter(s)}/In/{yyyy}/{mm}/{dd}/{hh}/, {Region}/{SubjectMatter(s)}/Out/{yyyy}/{mm}/{dd}/{hh}/, {Region}/{SubjectMatter(s)}/Bad/{yyyy}/{mm}/{dd}/{hh}/
 
-## Azure Blob Storage
+## Azure Storage
 
-* Azure Blob storage is Microsoft's object storage solution for the cloud
-* Blob storage offers three types of resources:
-  * The storage account
-  * A container in the storage account
-  * A blob in a container
+* Azure core storage Services
+  * **Azure Blobs** - Microsoft's object storage solution for the cloud
+  * **Azure Files** - Fully managed file shares in the cloud that are accessible via the industry standard Server Message Block (SMB) protocol or Network File System (NFS) protocol
+  * **Azure Queues** - Messaging store for storing large numbers of messages to be processed asynchronously
+  * **Azure Tables** - NoSQL datastore for storing large amount of structured, non-relational data
+  * **Azure Disks** - Azure managed block-level storage volumes like a physical disk in an on-premises server
 * A storage account provides a unique namespace in Azure for your data
-* Azure Storage supports three types of blobs:
-  * **Block blobs** store text and binary data. Block blobs are made up of blocks of data that can be managed individually. Block blobs store up to about 4.75 TiB of data. Larger block blobs are available in preview, up to about 190.7 TiB
-  * **Append blobs** are made up of blocks like block blobs, but are optimized for append operations. Append blobs are ideal for scenarios such as logging data from virtual machines
-  * **Page blobs** store random access files up to 8 TB in size. Page blobs store virtual hard drive (VHD) files and serve as disks for Azure virtual machines
-* The types of storage accounts are
-  * **General-purpose v2 accounts** - Basic storage account type for blobs (all types - block, append, page), files, queues, and tables. Recommended for most scenarios using Azure Storage
-  * **General-purpose v1 accounts** - Legacy account type for blobs, files, queues, and tables. Use general-purpose v2 accounts instead when possible
-  * **BlockBlobStorage accounts** - Storage accounts with premium performance characteristics for block blobs and append blobs. Recommended for scenarios with high transactions rates, or scenarios that use smaller objects or require consistently low storage latency
-  * **FileStorage accounts** - Files-only storage accounts with premium performance characteristics. Recommended for enterprise or high performance scale applications
-  * **BlobStorage accounts** - Legacy Blob-only storage accounts. Use general-purpose v2 accounts instead when possible.
+* Format of the endpoint URL of the storage services is: `http://*mystorageaccount*.*service*.core.windows.net`, where *service* can be 'blob' (for Blob storage), 'dfs' (for Data Lake Storage Gen2), 'file' (for Azure files), 'queue' (for Azure queue storage), and 'table' (for Azure table storage).
+* The types of storage accounts (excluding legacy types)
+  * **Sandard general purpose v2** - 
+    * Basic storage account type for blobs (all types - block, append, page), files, queues, and tables. Recommended for most scenarios using Azure Storage
+    * Supports all redundancy types - LRS, GRS, RA-GRS, ZRS, GZRS, RA-GZRS
+  * **Premium block blob** - 
+    * Storage accounts with premium performance characteristics for block blobs and append blobs
+    * Recommended for scenarios with high transactions rates, or scenarios that use smaller objects or require consistently low storage latency
+    * Supports only LRS and ZRS
+    * Backed by SSD
+  * **Premium file shares** - 
+    * Files-only storage accounts with premium performance characteristics
+    * Recommended for enterprise or high performance scale applications
+    * Supports only LRS and ZRS
+    * Backed by SSD
+  * **Premium page blobs** - 
+    * foundation of Azure IaaS Disks
+    * Supports only LRS and ZRS
+    * Backed by SSD
 * Azure storage redundancy types
-  * **Locally redundant storage (LRS)** - A simple, low-cost redundancy strategy. Data is copied synchronously three times within the primary region
-  * **Zone-redundant storage (ZRS)** - Redundancy for scenarios requiring high availability. Data is copied synchronously across three Azure availability zones in the primary region
-  * **Geo-redundant storage (GRS)** - Cross-regional redundancy to protect against regional outages. Data is copied synchronously three times in the primary region, then copied asynchronously to the secondary region. For read access to data in the secondary region, enable read-access geo-redundant storage (RA-GRS)
-  * **Geo-zone-redundant storage (GZRS) (preview)** - Redundancy for scenarios requiring both high availability and maximum durability. Data is copied synchronously across three Azure availability zones in the primary region, then copied asynchronously to the secondary region. For read access to data in the secondary region, enable read-access geo-zone-redundant storage (RA-GZRS)
+  * **Locally redundant storage (LRS)** -
+    * Replicates data three times within a single data center in the primary region
+    * 99.999999999% (11 nines) durability of objects over a given year
+    * Protects against server rack and drive failures
+  * **Zone-redundant storage (ZRS)** - 
+    * Replicates data synchronously across three Azure availability zones in the primary region
+    * 99.9999999999% (12 9's) durability of objects over a given year
+    * Data is still accessible for both read and write operations even if a zone becomes unavailable
+  * **Geo-redundant storage (GRS)** - 
+    * Cross-regional redundancy to protect against regional outages
+    * Data is copied synchronously three times in the primary region, then copied asynchronously to the secondary region. In the secondary region, data is replicated synchronously using LRS. For read access to data in the secondary region, enable read-access geo-redundant storage (RA-GRS)
+    * 99.99999999999999% (16 9's) durability of objects over a given year
+  * **Geo-zone-redundant storage (GZRS)** -
+    * Cross-regional redundancy to protect against regional outages
+    * Copied across three Azure availability zones in the primary region and is also replicated to a secondary geographic region for protection from regional disasters. In the secondary region, data is replicated synchronously using LRS. For read access to data in the secondary region, enable read-access geo-redundant storage (RA-GZRS)
+    * 99.99999999999999% (16 9's) durability of objects over a given year
 * With GRS or GZRS, the data in the secondary location isn't available for read or write access unless there is a failover to the secondary region
 * If the primary region becomes unavailable, you can choose to fail over to the secondary region. After the failover has completed, the secondary region becomes the primary region, and you can again read and write data
 * Because data is replicated to the secondary region asynchronously, a failure that affects the primary region may result in data loss if the primary region cannot be recovered. The interval between the most recent writes to the primary region and the last write to the secondary region is known as the recovery point objective (RPO). The RPO indicates the point in time to which data can be recovered. Azure Storage typically has an RPO of less than 15 minutes, although there's currently no SLA on how long it takes to replicate data to the secondary region
-* Geo-redundant storage (GRS) copies your data synchronously three times within a single physical location in the primary region using LRS. It then copies your data asynchronously to a single physical location in a secondary region. When data is written to the secondary location, it's also replicated within that location using LRS
-* If your storage account is configured for read access to the secondary region, then you can design your applications to seamlessly shift to reading data from the secondary region if the primary region becomes unavailable for any reason
-* The secondary region is available for read access after you enable RA-GRS or RA-GZRS, so that you can test your application in advance to make sure that it will properly read from the secondary in the event of an outage
 * To determine which write operations have been replicated to the secondary region, your application can check the Last Sync Time property for your storage account. All write operations written to the primary region prior to the last sync time have been successfully replicated to the secondary region, meaning that they are available to be read from the secondary
-* **Durability** over a given year
-  * LRS - at least 99.999999999% (11 9's)	
-  * ZRS - at least 99.9999999999% (12 9's)
-  * GRS - at least 99.99999999999999% (16 9's)
-  * GZRS - at least 99.99999999999999% (16 9's)
-* **Storage account redundancy types**
-  * General Purpose V2 - LRS, ZRS, GRS, GZRS
-  * Block Blob Storage - LRS, ZRS
-  * File Storage - LRS, ZRS
-* Azure storage offers different access tiers, which allow you to store blob object data in the most cost-effective manner. The available access tiers include:
-  * **Hot** - Optimized for storing data that is accessed frequently
-  * **Cool** - Optimized for storing data that is infrequently accessed and stored for at least 30 days
-  * **Archive** - Optimized for storing data that is rarely accessed and stored for at least 180 days with flexible latency requirements (on the order of hours)
+* Azure Blob Storage supports three types of blobs:
+  * **Block blobs** 
+    * Stores text and binary data
+    * Max size 190.7 TiB
+  * **Append blobs** 
+    * Optimized for append operations
+    * Append blobs are ideal for scenarios such as logging data from virtual machines
+    * Max size 195 GiB
+  * **Page blobs** 
+    * Provides random access to files 
+    * Max size 8 TiB
+    * Stores virtual hard drive (VHD) files and serves as disks for Azure virtual machines
+    * Can only use the Hot access tier, they cannot use either the Cool or Archive tiers
+* Azure Blob Storage offers different access tiers:
+  * **Hot** - 
+    * Optimized for storing data that is accessed frequently
+    * Storage availability - 99.9%, 99.99% (with RA-GRS reads)
+  * **Cool** - 
+    * Optimized for storing data that is infrequently accessed 
+    * Stored for at least 30 days
+    * Storage availability - 99%, 99.9% (with RA-GRS reads)
+  * **Archive** - 
+    * Optimized for storing data that is rarely accessed 
+    * Stored for at least 180 days with flexible latency requirements (on the order of hours)
+    * Storage availability - offline
 * Only the hot and cool access tiers can be set at the account level. The archive access tier isn't available at the account level
 * Hot, cool, and archive tiers can be set at the blob level during upload or after upload
-* Archive storage stores data offline and offers the lowest storage costs but also the highest data rehydrate and access costs
+* Archive storage stores data offline and offers the lowest storage costs but also the highest data access costs
 * For objects with the tier set at the object level, the account tier won't apply. The archive tier can be applied only at the object level. You can switch between these access tiers at any time
 * Data must remain in the archive tier for at least 180 days or be subject to an early deletion charge
 * For small objects, a high priority rehydrate may retrieve the object from archive in under 1 hour
@@ -514,33 +537,7 @@
 * Setting or modifying the blob metadata while in archive is not allowed; however you may set and modify the blob index tags
 * Blob Storage lifecycle management offers a rich, rule-based policy that you can use to transition your data to the best access tier and to expire data at the end of its lifecycle
 * Data stored in a block blob storage account (Premium performance) cannot currently be tiered to hot, cool, or archive using Set Blob Tier or using Azure Blob Storage lifecycle management. To move data, you must synchronously copy blobs from the block blob storage account to the hot access tier in a different account
-* Storage Availability
-  * Hot Tier - 99.9%, 99.99% (with RA-GRS reads)
-  * Cool Tier - 99%, 99.9% (with RA-GRS reads)
-  * Archive Tier - offline
-* Azure block blob storage offers two different performance tiers:
-  * **Premium** - optimized for high transaction rates and single-digit consistent storage latency
-  * **Standard** - optimized for high capacity and high throughput
-* **Standard performance tier**
-  * Supported storage account type - General purpose v2, BlobStorage, General purpose v1
-  * Region availability - all regions
-  * Redundancy - as per storage account type
-* **Premium preformance tier**
-  * Supported storage account type - Block blob storage
-  * Region availability - selected regions
-  * Redundancy - LRS, ZRS
-* Premium performance block blob storage makes data available via high-performance hardware. Data is stored on solid-state drives (SSDs) which are optimized for low latency. Good for - 
-  * Interactive workloads
-  * Analytics - IoT many smaller writes
-  * Artificial intelligence/machine learning (AI/ML)
-  * Data transformation
-* Standard performance supports different access tiers to store data in the most cost-effective manner. It's optimized for high capacity and high throughput on large data sets. Good for - 
-  * Backup and disaster recovery datasets
-  * Media content
-  * Bulk data processing
-* Blob storage lifecycle management offers a rich, rule-based policy:
-  * Premium - Expire data at the end of its lifecycle
-  * Standard - Transition data to the best access tier and expire data at the end of its lifecycle
+* Blob storage lifecycle management offers a rich, rule-based policy to transition data to the best access tier and expire data at the end of its lifecycle
 * Azure storage service is designed to embrace a strong consistency model which guarantees that when the Storage service commits a data insert or update operation all further accesses to that data will see the latest update
 * The Azure storage service uses snapshot isolation to allow read operations to happen concurrently with write operations within a single partition. Snapshot isolation guarantees that all reads see a consistent snapshot of the data even while updates are occurring – essentially by returning the last committed values while an update transaction is being processed
 * You can opt to use either optimistic or pessimistic concurrency models to manage access to blobs and containers in the Blob service. If you do not explicitly specify a strategy last writes wins is the default
@@ -557,6 +554,14 @@
   * The Blob service automatically releases finite leases when they expire.
   * Leases enable different synchronization strategies to be supported, including exclusive write / shared read, exclusive write / exclusive read and shared write / exclusive read. Where a lease exists the storage service enforces exclusive writes (put, set and delete operations) however ensuring exclusivity for read operations requires the developer to ensure that all client applications use a lease ID and that only one client at a time has a valid lease ID
   * Read operations that do not include a lease ID result in shared reads.
+* Object replication asynchronously copies block blobs between a source storage account and a destination account
+* Prerequisite of object replication
+  * Change Feed enabled on source account
+  * Blob Versionng enabled on both source and destination account
+* **Change Feed**
+  * Provides transaction logs of all the changes that occur to the blobs and the blob metadata in storage account
+  * The change feed provides ordered, guaranteed, durable, immutable, read-only log of these changes
+  * Stored as blobs in a special container in the same storage account in Avro format
 * The Table service uses optimistic concurrency checks as the default behavior when you are working with entities
 
 ## Azure Event Hub
@@ -643,6 +648,21 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
 
 ## Azure Stream Analytics
 
+
+## Azure App Service
+
+* Azure App Service is an HTTP-based service for hosting web applications, REST APIs, and mobile back ends
+* App Service has first-class support for ASP.NET, ASP.NET Core, Java, Ruby, Node.js, PHP, or Python
+* App Service automatically patches and maintains the OS and language frameworks
+* App service allows deploying app in a custon Linux/Windows container
+* DevOps support
+* Scale up or out - manually or automatically
+* App Service is ISO, SOC, and PCI compliant
+
+## Azure Function
+
+* Large, long-running functions can cause unexpected timeout issues
+* A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
 
 ## ARM Template
 
