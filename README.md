@@ -210,15 +210,8 @@
   * **Virtual network gateway** - One or more routes with Virtual network gateway listed as the next hop type are added when a virtual network gateway is added to a virtual network. If your on-premises network gateway exchanges border gateway protocol (BGP) routes with an Azure virtual network gateway, a route is added for each route propagated from the on-premises network gateway
   * **VirtualNetworkServiceEndpoint** - The public IP addresses for certain services are added to the route table by Azure when you enable a service endpoint to the service. Service endpoints are enabled for individual subnets within a virtual network, so the route is only added to the route table of a subnet a service endpoint is enabled for
   * **Virtual appliance** - A virtual appliance is a virtual machine that typically runs a network application, such as a firewall
-* Any network interface attached to a virtual machine that forwards network traffic to an address other than its own must have the Azure Enable IP forwarding option enabled for it. The setting disables Azure's check of the source and destination for a network interface
-* Though Enable IP forwarding is an Azure setting, you may also need to enable IP forwarding within the virtual machine's operating system for the appliance to forward traffic between private IP addresses assigned to Azure network interfaces
-* If the appliance must route traffic to a public IP address, it must either proxy the traffic, or network address translate the private IP address of the source's private IP address to its own private IP address, which Azure then network address translates to a public IP address, before sending the traffic to the Internet
-* You can create custom, or user-defined(static), routes in Azure to override Azure's default system routes, or to add additional routes to a subnet's route table
-* An on-premises network gateway can exchange routes with an Azure virtual network gateway using the border gateway protocol (BGP)
-* You cannot specify VNet peering or VirtualNetworkServiceEndpoint as the next hop type in user-defined routes
-* In Azure, you create a route table, then associate the route table to zero or more virtual network subnets
+* In Azure, a route table can be associated to zero or more virtual network subnets
 * Each subnet can have zero or one route table associated to it
-* If you create a route table and associate it to a subnet, the routes within it are combined with, or override, the default routes Azure adds to a subnet by default
 * If multiple routes contain the same address prefix, Azure selects the route type, based on the following priority:
   * User-defined route
   * BGP route
@@ -229,18 +222,15 @@
 
 ### DNS
 
-* Azure DNS a.k.a public DNS is a hosting service for DNS domains
-* In addition to supporting internet-facing DNS domains, Azure DNS also supports private DNS zones (Azure Private DNS)
-* Azure DNS uses Anycast networking so that each DNS query is answered by the closest available DNS server
-* **Azure DNS** provides an authoritative DNS service. It does not provide a recursive DNS service. Cloud Services and VMs in Azure are automatically configured to use a recursive DNS service that is provided separately as part of Azure's infrastructure
-* If the user buys a custome domain contoso.net, the domain name registrar allows the user to setup NS record to point to the authoritative name server (in this case Azure DNS). The registrar stores the NS records in the .net parent zone
-* **Private Azure DNS** - By using private DNS zones, you can use your own custom domain names rather than the Azure-provided names available today. The records contained in a private DNS zone are not resolvable from the Internet. DNS resolution against a private DNS zone works only from virtual networks that are linked to it
-* You can also enable auto-registration feature to automatically manage the life cycle of the DNS records for the virtual machines deployed in a virtual network
-* Azure provided name resolution provides only basic authoritative DNS capabilities. If you use this option the DNS zone names and records will be automatically managed by Azure and you will not be able to control the DNS zone names or the life cycle of DNS records. If you need a fully featured DNS solution for your virtual networks you must use Azure DNS private zones or Customer-managed DNS servers
+* **Azure DNS** supports both internet-facing DNS domains and private DNS zones (**Azure Private DNS**)
+* Azure DNS provides an **authoritative** DNS service
+* If the user buys a custom domain contoso.net, the domain name registrar allows the user to setup NS record to point to the authoritative name server (in this case Azure DNS). The registrar stores the NS records in the .net parent zone
+* **Azure Private DNS** manages and resolves domain names in the virtual network 
+* Azure provided name resolution provides only basic authoritative DNS capabilities. For a fully featured DNS solution, Azure DNS private zones along with  Customer-managed DNS servers must be used
 * When resources deployed in virtual networks need to resolve domain names to internal IP addresses, they can use one of three methods:
   * Azure DNS private zones
-  * Azure-provided name resolution
-  * Name resolution that uses your own DNS server (which might forward queries to the Azure-provided DNS servers)
+  * Azure-provided name resolution (public DNS names and internal names)
+  * Name resolution that uses customer-managed DNS server (which might forward queries to the Azure-provided DNS servers)
 * DNS Name resolution scenarios:
   * **Name resolution for resources in the same VNet** - Azure Provided DNS or Azure DNS private zone
   * **Name resolution for resources between different VNets** - Azure DNS private zones or customer managed DNS servers
