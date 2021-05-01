@@ -20,8 +20,6 @@
 
 [Azure Front Door](#azure-front-door)
 
-[API Management Gateway](#api-management-gateway)
-
 [Traffic Manager](#traffic-manager)
 
 [Azure Monitor](#azure-monitor)
@@ -29,6 +27,8 @@
 [Security Center](#security-center)
 
 [Azure Storage](#azure-storage)
+
+[ARM Template](#arm-template)
 
 [Azure Event Hub](#azure-event-hub)
 
@@ -38,7 +38,7 @@
 
 [Azure Stream Analytics](#azure-stream-analytics)
 
-[ARM Template](#arm-template)
+[API Management Gateway](#api-management-gateway)
 
 [Script](#script)
 
@@ -48,6 +48,7 @@
 * VM Availability: https://azure.microsoft.com/en-gb/support/legal/sla/virtual-machines/v1_9/
 * Azure Enterprise (https://ea.azure.com) -> Departments (Optional) -> Accounts (https://account.azure.com) -> Subscriptions (https://portal.azure.com) -> Resource Groups -> Resources
 * EA Breakdown - Enterprise Admin, Department Admin, Account Owner, Service Admin
+* All Azure resource types have a scope that defines the level that resource names must be unique. A resource must have a unique name within its scope. Most resources have either resource group or global scope - https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
 
 ## Resource Groups
 * A container that holds related resources for an Azure solution
@@ -244,7 +245,7 @@
 
 ## Azure Bastion
 
-* Azure Bastion is a fully managed platform PaaS service from Azure that is hardened internally to provide you secure RDP/SSH connectivity
+* Azure Bastion is a fully managed platform PaaS service from Azure that is hardened internally to provide secure RDP/SSH connectivity
 * Azure Bastion is deployed per virtual network
 * Workings of Azure Bastion
   * The Bastion host is deployed in the virtual network
@@ -261,14 +262,13 @@
 
 * Azure Load Balancer operates at layer four of the Open Systems Interconnection (OSI) model
 * Azure load balancer can be public or internal depending on whether a public or private IP is selected respectively
-* By default, Load balancer uses a Five-tuple hash. The hash includes:
+* By default, Load balancer uses a Five-tuple hash. It provides stickiness within the same transport session. The hash includes:
   * Source IP address
   * Source port (changes for each new flow from the same source IP)
   * Destination IP address
   * Destination port
-  * IP protocol number to map flows to available servers
+  * Protocol type
 * Affinity to a source IP address is created by using a two or three-tuple hash
-* Packets of the same flow arrive on the same instance behind the load-balanced front end
 * Azure Load Balancer has an idle timeout setting of 4 minutes to 30 minutes. By default, it is set to 4 minutes. To keep the session alive, use TCP keep-alive
 
 ## Azure Firewall
@@ -335,18 +335,18 @@
 
 ## Azure Front Door
 
-* If Azure Firewall is used in front of the Application Gateway to filter the maliscious traffic, the source client IP can be injected in the client request by placing Azure Front Door in front of the firewall
-* Azure Front Door functionality partly overlaps with Azure Application Gateway. For example, both services offer web application firewalling, SSL offloading, and URL-based routing. One main difference is that while Azure Application Gateway is inside a virtual network, Azure Front Door is a global, decentralized service
-* In some situations, you can simplify virtual network design by replacing Application Gateway with a decentralized Azure Front Door
-
-## API Management Gateway
-
+* If Azure Firewall is used in front of the Application Gateway to filter the maliscious traffic, the source client IP can be injected in the client request as HTTP header by placing Azure Front Door in front of the firewall
+* Azure Application Gateway and Azure Front Door are both layer 7 load balancers. Azure Application Gateway is a regional service, while Azure Front Door balances load across regions
+* The key scenarios why one should use Application Gateway behind Front Door are:
+  * Front Door can perform path-based load balancing only at the global level but if one wants to load balance traffic even further within their virtual network (VNET) then they should use Application Gateway.
+  * Since Front Door doesn't work at a VM/container level, so it cannot do Connection Draining. However, Application Gateway allows you to do Connection Draining.
+  * With an Application Gateway behind Front Door, one can achieve 100% TLS/SSL offload and route only HTTP requests within their virtual network (VNET).
+  * Front Door and Application Gateway both support session affinity. While Front Door can direct subsequent traffic from a user session to the same cluster or backend in a given region, Application Gateway can direct affinitize the traffic to the same server within the cluster.
 
 ## Traffic Manager
 
-* Azure Traffic Manager is a DNS-based traffic load balancer that enables you to distribute traffic optimally to services across global Azure regions
+* Azure Traffic Manager is a DNS-based traffic load balancer that enables you to distribute traffic optimally to services across global Azure regions. For webapp, however, Azure Front Door may provide a better performance
 * Traffic Manager uses DNS to direct client requests to the most appropriate service endpoint based on a traffic-routing method and the health of the endpoints
-* Using a CNAME record with the domain name registrar, the DNS queris for the given domain name need to be routed to traffic manager
 * Traffic Manager is resilient to failure, including the failure of an entire Azure region
 * Traffic Manager improves application responsiveness by directing traffic to the endpoint with the lowest network latency for the client
 * Azure Traffic Manager supports six traffic-routing methods to determine how to route network traffic to the various service endpoints
@@ -361,22 +361,10 @@
     * The Multivalue traffic-routing method allows you to get multiple healthy endpoints in a single DNS query response. This enables the caller to do client-side retries with other endpoints in the event of a returned endpoint being unresponsive. This pattern can increase the availability of a service and reduce the latency associated with a new DNS query to obtain a healthy endpoint. MultiValue routing method works only if all the endpoints of type ‘External’ and are specified as IPv4 or IPv6 addresses
   * **Subnet** - Select Subnet traffic-routing method to map sets of end-user IP address ranges to a specific endpoint within a Traffic Manager profile. When a request is received, the endpoint returned will be the one mapped for that request’s source IP address. Use case:
     * Subnet routing can be used to deliver a different experience for users connecting from a specific IP space. For example, using subnet routing, a customer can make all requests from their corporate office be routed to a different endpoint where they might be testing an internal only version of their app. Another scenario is if you want to provide a different experience to users connecting from a specific ISP (For example, block users from a given ISP)
-* A single Traffic Manager profile can use only one traffic routing method. You can select a different traffic routing method for your profile at any time. Changes are applied within one minute, and no downtime is incurred
-* Traffic-routing methods can be combined by using nested Traffic Manager profiles. Nesting enables sophisticated and flexible traffic-routing configurations that meet the needs of larger, complex applications
-* Traffic Manager does not receive DNS queries directly from clients. Rather, DNS queries come from the recursive DNS service that the clients are configured to use. Therefore, the IP address used to determine the 'closest' endpoint is not the client's IP address, but it is the IP address of the recursive DNS service. In practice, this IP address is a good proxy for the client
-* Since a region can be mapped only to one endpoint, Traffic Manager returns it regardless of whether the endpoint is healthy or not. It is strongly recommended that customers using the geographic routing method associate it with the Nested type endpoints that has child profiles containing at least two endpoints within each
-* MinChildEndpoints - Below this threshold, the parent profile considers the entire child profile to be unavailable and directs traffic to the other endpoints
 * Endpoint Types
   * **Azure endpoints** are used for services hosted in Azure
   * **External endpoints** are used for IPv4/IPv6 addresses, FQDNs, or for services hosted outside Azure that can either be on-premises or with a different hosting provider
   * **Nested endpoints** are used to combine Traffic Manager profiles to create more flexible traffic-routing schemes to support the needs of larger, more complex deployments
-* There is no restriction on how endpoints of different types are combined in a single Traffic Manager profile. Each profile can contain any mix of endpoint types
-* Only Web Apps at the 'Standard' SKU or above are eligible for use with Traffic Manager
-* When an endpoint receives an HTTP request, it uses the 'host' header in the request to determine which Web App should service the request. The host header contains the DNS name used to initiate the request, for example 'contosoapp.azurewebsites.net'
-* Each Traffic Manager profile can have at most one Web App endpoint from each Azure region. To work around for this constraint, you can configure a Web App as an External endpoint
-* Nested endpoints combine multiple Traffic Manager profiles to create flexible traffic-routing schemes and support the needs of larger, complex deployments. With Nested endpoints, a 'child' profile is added as an endpoint to a 'parent' profile. Both the child and parent profiles can contain other endpoints of any type, including other nested profiles
-* Traffic Manager allows you to configure the TTL used in Traffic Manager DNS responses for DN response caching by clients
-
 
 ## Azure Monitor
 
@@ -554,6 +542,47 @@
   * Stored as blobs in a special container in the same storage account in Avro format
 * The Table service uses optimistic concurrency checks as the default behavior when you are working with entities
 
+## Azure App Service
+
+* Azure App Service is an HTTP-based service for hosting web applications, REST APIs, and mobile back ends
+* App Service has first-class support for ASP.NET, ASP.NET Core, Java, Ruby, Node.js, PHP, or Python
+* App Service automatically patches and maintains the OS and language frameworks
+* App service allows deploying app in a custon Linux/Windows container
+* DevOps support
+* Scale up or out - manually or automatically
+* App Service is ISO, SOC, and PCI compliant
+
+## Azure Function
+
+* Large, long-running functions can cause unexpected timeout issues
+* A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
+
+## ARM Template
+
+* Parameters are used for settings that vary according to the environment, like SKU, size, or capacity
+* It's recommended to run the ARM test toolkit and the what-if operation on the templates before deploying them
+  * The test toolkit checks whether the template uses best practices. It provides warnings when it identifies changes that could improve how the template is implemented
+  * The what-if operation shows the changes the template will make to the environment. It returns any syntax or other errors it can detect about the final state.
+* The copy element is used to specify more than one instance. Copy can be used on resources, properties, variables, and outputs
+* Azure PowerShell or Azure CLI scripts can be included in templates
+* If a script needs to be run on a host operating system in a VM, then the custom script extension and/or DSC would be a better choice. However, deployment scripts have advantages, such as setting the timeout duration
+* When deploying resources using templates, the deployment mode is either an incremental update or a complete update - the default mode is incremental
+* In complete mode, Resource Manager deletes resources that exist in the resource group but aren't specified in the template
+* Sections of template:
+  * $schema - required
+  * contentVersion - required
+  * apiProfile - optional
+  * parameters - optioanl
+  * variables - optional
+  * functions - optional
+  * resources - required
+  * outputs - optional
+* As ARM deployments become more complex, linked and nested templates can be used to break these deployments down into smaller reusable components
+* By default, Resource Manager creates the resources in parallel. It applies no limit to the number of resources deployed in parallel, other than the total limit of 800 resources in the template. The order in which they're created isn't guaranteed
+* To serially deploy more than one instance of a resource, mode needs to be set to `serial` and `batchSize` to the number of instances to deploy at a time. With `serial` mode, Resource Manager creates a dependency on earlier instances in the loop, so it doesn't start one batch until the previous batch completes
+* `dependsOn` element is used to specify that a resource is deployed after another resource. To deploy a resource that depends on the collection of resources in a loop, the name of the `copy` loop in the `dependsOn` element needs to be provided
+* If a parameter doesn't have a default value and isn't specified in the parameter file, you're prompted to provide a value during deployment
+
 ## Azure Event Hub
 
 * Event publishers can publish events using HTTPS or AMQP 1.0 or Apache Kafka (1.0 and above)
@@ -634,56 +663,10 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * **SQL Filter** -
   * **Boolean Filter** - 
   * **Correlation Filter** - 
-* 
 
 ## Azure Stream Analytics
 
-
-## Azure App Service
-
-* Azure App Service is an HTTP-based service for hosting web applications, REST APIs, and mobile back ends
-* App Service has first-class support for ASP.NET, ASP.NET Core, Java, Ruby, Node.js, PHP, or Python
-* App Service automatically patches and maintains the OS and language frameworks
-* App service allows deploying app in a custon Linux/Windows container
-* DevOps support
-* Scale up or out - manually or automatically
-* App Service is ISO, SOC, and PCI compliant
-
-## Azure Function
-
-* Large, long-running functions can cause unexpected timeout issues
-* A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
-
-## ARM Template
-
-* Use parameters for settings that vary according to the environment, like SKU, size, or capacity
-* We recommend running the ARM test toolkit and the what-if operation on your templates before deploying them
-  * The test toolkit checks whether your template uses best practices. It provides warnings when it identifies changes that could improve how you've implemented your template
-  * The what-if operation shows the changes your template will make to your environment. You can see unintended changes before they're deployed. What-if also returns any errors it can detect during preflight validation. For example, if your template contains a syntactical error, it returns that error. It also returns any errors it can determine about the final state of the deployed resources. For example, if your template deploys a storage account with a name that is already in use, what-if returns that error
-* Use the copy element to specify more than one instance. You can use copy on resources, properties, variables, and outputs
-* Yes, they can be used across subscriptions as long as the user has read access to the template spec. Template specs can't be used across tenants
-* You can include Azure PowerShell or Azure CLI scripts in your templates
-* If you need to run a script on a host operating system in a VM, then the custom script extension and/or DSC would be a better choice. However, deployment scripts have advantages, such as setting the timeout duration
-* When deploying your resources, you specify that the deployment is either an incremental update or a complete update
-* The default mode is incremental
-* For both modes, Resource Manager tries to create all resources specified in the template. If the resource already exists in the resource group and its settings are unchanged, no operation is taken for that resource. If you change the property values for a resource, the resource is updated with those new values. If you try to update the location or type of an existing resource, the deployment fails with an error
-* In complete mode, Resource Manager deletes resources that exist in the resource group but aren't specified in the template
-* What-if shows you which resources will be created, deleted, or modified. Use what-if to avoid unintentionally deleting resources
-* Sections of template:
-  * $schema - required
-  * contentVersion - required
-  * apiProfile - optional
-  * parameters - optioanl
-  * variables - optional
-  * functions - optional
-  * resources - required
-  * outputs - optional
-* linked template refers to a separate template file that is referenced via a link from the main template
-* nested template to refer to embedded template syntax within the main template
-* To link a template, add a deployments resource to your main template. In the templateLink property, specify the URI of the template to include
-* By default, Resource Manager creates the resources in parallel. It applies no limit to the number of resources deployed in parallel, other than the total limit of 800 resources in the template. The order in which they're created isn't guaranteed
-* To serially deploy more than one instance of a resource, set mode to serial and batchSize to the number of instances to deploy at a time. With serial mode, Resource Manager creates a dependency on earlier instances in the loop, so it doesn't start one batch until the previous batch completes
-* You specify that a resource is deployed after another resource by using the dependsOn element. To deploy a resource that depends on the collection of resources in a loop, provide the name of the copy loop in the dependsOn element
+## API Management Gateway
 
 
 ## Script
