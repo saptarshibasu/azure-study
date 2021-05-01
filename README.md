@@ -10,6 +10,8 @@
 
 [Virtual Machine](#virtual-machine)
 
+[Azure AD](#azure-ad)
+
 [Azure Bastion](#azure-bastion)
 
 [Azure Load Balancer](#azure-load-balancer)
@@ -241,7 +243,29 @@
 
 ## Virtual Machine
 
+## Azure AD
 
+* AAD - Azure Active Directory - Modern AD service built directly for the cloud
+* ADDS - Active Directory Domain Services - Legacy Active Directory installed on Windows server
+* AADDS - Azure Active Directory Domain Services - Managed domain services without the need to patch and maintain domain controllers
+* Pricing details
+  * Free has object limit of 5,00,000. Basic, P1, P2  have no object limit
+  * Free users do not have self service password reset, company branding etc.
+  * P1, P2 exclusive features - Self-service password reset/change/unlock with on-premises write-back, Multi-Factor Authentication
+  * P2 exclusive feature - Identity Protection, Privileged Identity Management (PIM) (elevated access)
+* Hybrid identity authentication methods
+  * Password Hash Synchronization
+    * To be used where the organization wants to reuse their existing on-prem active directory credentials in cloud
+    * Azure AD Connect reads the password hashes from on-prem directory, hashes them 1000 times over, and copies them to Azure AD every 2 mins
+    * During authentication, there is no dependnecy on on-prem infrastructure
+    * Security benefits: leaked credential report, smart lockout
+  * Pass-through Authentication
+    * To be used where the organization wants to reuse their existing on-prem active directory credentials and security policies in cloud
+    * Security benefit: Smart lockout
+  * Federation 
+    * To be used where the organization has advanced requirements that are not natively supported by Azure AD
+    * Advanced requirements that require federation: Sign-on using smartcards or certificates, sign-on using on-premises MFA server, sign-on using 3rd party authentication solution
+* Password hash sync can be enabled along with pass-through mechanism and federation to act as a backup. If anything goes wrong with the on-prem infrastructure, a manual failover to password hash sync can make things work. Additionally password protection with leaked credential report is also available with password hash sync
 
 ## Azure Bastion
 
@@ -734,3 +758,4 @@ New-AzResourceGroupDeployment `
 ## References
 
 * [How to get better outbound connectivity using Azure NAT Gateway | Azure Friday](https://www.youtube.com/watch?v=2Ng_uM0ZaB4)
+* [How to choose the right authentication method in Azure Active Directory](https://youtu.be/YtW2cmVqSEw)
