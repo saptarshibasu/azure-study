@@ -243,6 +243,39 @@
 
 ## Virtual Machine
 
+* Availability Set
+  * Each virtual machine in an availability set is assigned an update domain and a fault domain by the underlying Azure platform
+  * Each availability set can be configured with up to three fault domains and twenty update domains
+  * Update domains indicate groups of virtual machines and underlying physical hardware that can be rebooted at the same time
+  * Fault domains define the group of virtual machines that share a common power source and network switch
+* Scale Set
+  * Scale sets are used to run multiple instances of an application. If one of these VM instances has a problem, customers continue to access your application through one of the other VM instances with minimal interruption
+  * An Azure virtual machine scale set can automatically increase or decrease the number of VM instances that run the application
+  * For additional availability, Availability Zones can be used to automatically distribute VM instances in a scale set within a single datacenter or across multiple datacenters
+  * With scale sets, all VM instances are created from the same base OS image and configuration
+* Custom Data
+  * To inject a script or other metadata into a Microsoft Azure virtual machine at provisioning time, custom data is used. Custom data is executed only during the first boot
+  * If the script exceeds the total VM provisioning time allowance of 40 mins, the VM Create will fail. Note, if the script fails to execute, or errors during executing, it is not deemed a fatal provisioning failure
+* Managed Disk
+  * Azure managed disks are block-level storage volumes that are managed by Azure and used with Azure Virtual Machines
+  * Managed disks are designed for 99.999% availability. Managed disks achieve this by providing three replicas of your data, allowing for high durability
+  * Azure managed disks offer two storage redundancy options, zone-redundant storage (ZRS) as a preview, and locally-redundant storage. ZRS provides higher availability for managed disks than locally-redundant storage (LRS) does. However, the write latency for LRS disks is better than ZRS disks because LRS disks synchronously write data to three copies in a single data center
+  * To protect against regional disasters, Azure Backup can be used to create a backup job with time-based backups and backup retention policies
+  * Azure Backup supports disk sizes up to 32 tebibyte (TiB) disks
+  * Managed disks offer two different kinds of encryption - Server Side Encryption (SSE), which is performed by the storage service, and Azure Disk Encryption (ADE), which is enabled on the OS and data disks for VMs
+  * There are a few ways to protect an application using LRS disks from an entire zone failure:
+    * Use an application like SQL Server AlwaysOn, that can synchronously write data to two zones, and automatically failover to another zone during a disaster.
+    * Take frequent backups of LRS disks with ZRS snapshots.
+    * Enable cross-zone disaster recovery for LRS disks via Azure Site Recovery. However, cross-zone disaster recovery doesn't provide zero Recovery Point Objective (RPO).
+
+Detail | Ultra Disk | Premium SSD | Standard SSD | Standard HDD
+------ | ---------- | ----------- | ------------ | ------------
+Disk type | SSD | SSD | SSD | HDD
+Scenario | IO-intensive workloads such as SAP HANA, top tier databases (for example, SQL, Oracle), and other transaction-heavy workloads | Production and performance sensitive workloads | Web servers, lightly used enterprise applications and dev/test | Backup, non-critical, infrequent access
+Max disk size | 65,536 gibibyte (GiB) | 32,767 GiB | 32,767 GiB | 32,767 GiB
+Max throughput | 2,000 MB/s | 900 MB/s | 750 MB/s | 500 MB/s
+Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
+
 ## Azure AD
 
 * AAD - Azure Active Directory - Modern AD service built directly for the cloud
@@ -266,6 +299,15 @@
     * To be used where the organization has advanced requirements that are not natively supported by Azure AD
     * Advanced requirements that require federation: Sign-on using smartcards or certificates, sign-on using on-premises MFA server, sign-on using 3rd party authentication solution
 * Password hash sync can be enabled along with pass-through mechanism and federation to act as a backup. If anything goes wrong with the on-prem infrastructure, a manual failover to password hash sync can make things work. Additionally password protection with leaked credential report is also available with password hash sync
+* Azure AD Connect provides the following features:
+  * Password hash synchronisation
+  * Pass-through authentication
+  * Federation integration
+  * Synchronisation
+  * Health Monitoring
+* In Express Settings, the Azure AD Connect installation wizard asks for the following:
+  * AD DS Enterprise Administrator credentials
+  * Azure AD Global Administrator credentials
 
 ## Azure Bastion
 
@@ -605,6 +647,14 @@
 * By default, Resource Manager creates the resources in parallel. It applies no limit to the number of resources deployed in parallel, other than the total limit of 800 resources in the template. The order in which they're created isn't guaranteed
 * To serially deploy more than one instance of a resource, mode needs to be set to `serial` and `batchSize` to the number of instances to deploy at a time. With `serial` mode, Resource Manager creates a dependency on earlier instances in the loop, so it doesn't start one batch until the previous batch completes
 * `dependsOn` element is used to specify that a resource is deployed after another resource. To deploy a resource that depends on the collection of resources in a loop, the name of the `copy` loop in the `dependsOn` element needs to be provided
+  * `Microsoft.Network/virtualNetworks` `dependsOn` 
+    * `Microsoft.Network/networkSecurityGroups`
+  * `Microsoft.Network/networkInterfaces` `dependsOn`
+    * `Microsoft.Network/publicIPAddresses`
+    * `Microsoft.Network/virtualNetworks`
+  * `Microsoft.Compute/virtualMachines` `dependsOn`
+    * `Microsoft.Storage/storageAccounts`
+    * `Microsoft.Network/networkInterfaces`
 * If a parameter doesn't have a default value and isn't specified in the parameter file, you're prompted to provide a value during deployment
 
 ## Azure Event Hub
