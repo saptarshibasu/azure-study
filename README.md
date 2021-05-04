@@ -40,6 +40,10 @@
 
 [Azure Stream Analytics](#azure-stream-analytics)
 
+[Azure Monitor](#azure-monitor)
+
+[Azure Advisor](#azure-advisor)
+
 [API Management Gateway](#api-management-gateway)
 
 [Script](#script)
@@ -51,6 +55,13 @@
 * Azure Enterprise (https://ea.azure.com) -> Departments (Optional) -> Accounts (https://account.azure.com) -> Subscriptions (https://portal.azure.com) -> Resource Groups -> Resources
 * EA Breakdown - Enterprise Admin, Department Admin, Account Owner, Service Admin
 * All Azure resource types have a scope that defines the level that resource names must be unique. A resource must have a unique name within its scope. Most resources have either resource group or global scope - https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
+
+Common Built-in RBAC Roles | Description
+-------------------------- | -----------
+Contributor | Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries
+Owner | Grants full access to manage all resources, including the ability to assign roles in Azure RBAC
+Reader | View all resources, but does not allow you to make any changes
+User Access Administrator | Lets you manage user access to Azure resources
 
 ## Resource Groups
 * A container that holds related resources for an Azure solution
@@ -276,6 +287,8 @@ Max disk size | 65,536 gibibyte (GiB) | 32,767 GiB | 32,767 GiB | 32,767 GiB
 Max throughput | 2,000 MB/s | 900 MB/s | 750 MB/s | 500 MB/s
 Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 
+* Any client running on a VM can acquire an access token by making a REST call to the VM at the endpoint: `http://169.254.169.254/metadata/identity/oauth2/token`. The token is based on the managed identity service principal and suitable for use as a bearer token in service-to-service calls requiring client credentials
+
 ## Azure AD
 
 * AAD - Azure Active Directory - Modern AD service built directly for the cloud
@@ -404,10 +417,11 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * If Azure Firewall is used in front of the Application Gateway to filter the maliscious traffic, the source client IP can be injected in the client request as HTTP header by placing Azure Front Door in front of the firewall
 * Azure Application Gateway and Azure Front Door are both layer 7 load balancers. Azure Application Gateway is a regional service, while Azure Front Door balances load across regions
 * The key scenarios why one should use Application Gateway behind Front Door are:
-  * Front Door can perform path-based load balancing only at the global level but if one wants to load balance traffic even further within their virtual network (VNET) then they should use Application Gateway.
-  * Since Front Door doesn't work at a VM/container level, so it cannot do Connection Draining. However, Application Gateway allows you to do Connection Draining.
-  * With an Application Gateway behind Front Door, one can achieve 100% TLS/SSL offload and route only HTTP requests within their virtual network (VNET).
-  * Front Door and Application Gateway both support session affinity. While Front Door can direct subsequent traffic from a user session to the same cluster or backend in a given region, Application Gateway can direct affinitize the traffic to the same server within the cluster.
+  * Front Door can perform path-based load balancing only at the global level but if one wants to load balance traffic even further within their virtual network (VNET) then they should use Application Gateway
+  * Since Front Door doesn't work at a VM/container level, so it cannot do Connection Draining. However, Application Gateway allows you to do Connection Draining
+  * With an Application Gateway behind Front Door, one can achieve 100% TLS/SSL offload and route only HTTP requests within their virtual network (VNET)
+  * Front Door and Application Gateway both support session affinity. While Front Door can direct subsequent traffic from a user session to the same cluster or backend in a given region, Application Gateway can direct affinitize the traffic to the same server within the cluster
+* Azure Front Door needs a public VIP or a publicly available DNS name to route the traffic to
 
 ## Traffic Manager
 
@@ -607,6 +621,10 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * The change feed provides ordered, guaranteed, durable, immutable, read-only log of these changes
   * Stored as blobs in a special container in the same storage account in Avro format
 * The Table service uses optimistic concurrency checks as the default behavior when you are working with entities
+* Azure Defender for Storage is an Azure-native layer of security intelligence that detects unusual and potentially harmful attempts to access or exploit storage accounts. It is applicable for:
+  * Blob Storage
+  * Azure Files
+  * Azure Data Lake Storage Gen2
 
 ## Azure App Service
 
@@ -655,7 +673,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * `Microsoft.Compute/virtualMachines` `dependsOn`
     * `Microsoft.Storage/storageAccounts`
     * `Microsoft.Network/networkInterfaces`
-* If a parameter doesn't have a default value and isn't specified in the parameter file, you're prompted to provide a value during deployment
+* If a parameter doesn't have a default value and isn't specified in the parameter file, the template execution will prompt to provide a value
 
 ## Azure Event Hub
 
@@ -739,6 +757,29 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * **Correlation Filter** - 
 
 ## Azure Stream Analytics
+
+## Azure Monitor
+
+* Application Insights is aimed at the development team, to help understand how an app is performing and how it's being used. It monitors:
+  * Request rates, response times, and failure rates - Find out which pages are most popular, at what times of day, and where the users are. See which pages perform best. If the response times and failure rates go high when there are more requests, then perhaps there is a resourcing problem.
+  * Dependency rates, response times, and failure rates - Find out whether external services are slowing you down.
+  * Exceptions - Analyze the aggregated statistics, or pick specific instances and drill into the stack trace and related requests. Both server and browser exceptions are reported.
+  * Page views and load performance - reported by users' browsers.
+  * AJAX calls from web pages - rates, response times, and failure rates.
+  * User and session counts.
+  * Performance counters from Windows or Linux server machines, such as CPU, memory, and network usage.
+  * Host diagnostics from Docker or Azure.
+  * Diagnostic trace logs from the app - so that the trace events can be correlated with requests.
+  * Custom events and metrics that the developers write in the client or server code, to track business events such as items sold or games won.
+
+## Azure Advisor
+
+* Analyzes resource configuration and usage telemetry and then recommends solutions in 5 areas:
+  * Reliability (formerly called High Availability)
+  * Security
+  * Performance
+  * Cost
+  * Operatonal Excellence
 
 ## API Management Gateway
 
