@@ -38,13 +38,15 @@
 
 [Azure Service Bus](#azure-service-bus)
 
-[Azure Stream Analytics](#azure-stream-analytics)
-
 [Azure Monitor](#azure-monitor)
 
 [Azure Advisor](#azure-advisor)
 
+[Azure Backup](#azure-backup)
+
 [API Management Gateway](#api-management-gateway)
+
+[Azure Stream Analytics](#azure-stream-analytics)
 
 [Script](#script)
 
@@ -756,8 +758,6 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * **Boolean Filter** - 
   * **Correlation Filter** - 
 
-## Azure Stream Analytics
-
 ## Azure Monitor
 
 * Application Insights is aimed at the development team, to help understand how an app is performing and how it's being used. It monitors:
@@ -781,8 +781,30 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * Cost
   * Operatonal Excellence
 
+## Azure Backup
+
+* With Azure Backup, following items can be backed up
+  * on-premises resources to the cloud
+  * Azure IaaS VMs
+* Back up on-premises machines:
+  * Back up on-premises Windows machines directly to Azure by using the Azure Backup Microsoft Azure Recovery Services (MARS) agent. Linux machines aren't supported.
+  * Back up on-premises machines to a backup server - either System Center Data Protection Manager (DPM) or Microsoft Azure Backup Server (MABS). The backup server isthen backed up to a Recovery Services vault in Azure.
+* Back up Azure VMs:
+  * Back up Azure VMs directly. Azure Backup installs a backup extension to the Azure VM agent that's running on the VM. This extension backs up the entire VM.
+  * Back up specific files and folders on the Azure VM by running the MARS agent.
+  * Back up Azure VMs to the MABS that's running in Azure, and then the MABS can be backed up to a Recovery Services vault.
+* Backups are stored in a Recovery Services vault with built-in management of recovery points
+* Azure Backup offers three types of replication - LRS, GRS, ZRS
+* Multiple virtual machines can be backed up by creating a backup policy on the recovery services vault and applying that policy to the desired virtual machines
+
+Backup type | Details | Usage
+----------- | ------- | -----
+Full | A full backup contains the entire data source. Takes more network bandwidth than differential or incremental backups | Used for initial backup
+Incremental | An incremental backup stores only the blocks of data that changed since the previous backup. High storage and network efficiency. With incremental backup, there's no need to supplement with full backups | Used by DPM/MABS for disk backups, and used in all backups to Azure. Not used for SQL Server backup
+
 ## API Management Gateway
 
+## Azure Stream Analytics
 
 ## Script
 
