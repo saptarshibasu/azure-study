@@ -24,8 +24,6 @@
 
 [Traffic Manager](#traffic-manager)
 
-[Azure Monitor](#azure-monitor)
-
 [Security Center](#security-center)
 
 [Azure Storage](#azure-storage)
@@ -43,6 +41,8 @@
 [Azure Advisor](#azure-advisor)
 
 [Azure Backup](#azure-backup)
+
+[Azure SQL](#azure-sql)
 
 [API Management Gateway](#api-management-gateway)
 
@@ -300,7 +300,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Free has object limit of 5,00,000. Basic, P1, P2  have no object limit
   * Free users do not have self service password reset, company branding etc.
   * P1, P2 exclusive features - Self-service password reset/change/unlock with on-premises write-back, Multi-Factor Authentication
-  * P2 exclusive feature - Identity Protection, Privileged Identity Management (PIM) (elevated access)
+  * P2 exclusive feature - Identity Protection, Privileged Identity Management (PIM) (elevated access), Access Review
 * Hybrid identity authentication methods
   * Password Hash Synchronization
     * To be used where the organization wants to reuse their existing on-prem active directory credentials in cloud
@@ -447,8 +447,6 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * **Azure endpoints** are used for services hosted in Azure
   * **External endpoints** are used for IPv4/IPv6 addresses, FQDNs, or for services hosted outside Azure that can either be on-premises or with a different hosting provider
   * **Nested endpoints** are used to combine Traffic Manager profiles to create more flexible traffic-routing schemes to support the needs of larger, more complex deployments
-
-## Azure Monitor
 
 ## Security Center
 
@@ -771,6 +769,13 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * Host diagnostics from Docker or Azure.
   * Diagnostic trace logs from the app - so that the trace events can be correlated with requests.
   * Custom events and metrics that the developers write in the client or server code, to track business events such as items sold or games won.
+* Azure Monitor can be enabled in for multiple virtual machines using Azure Poilicies
+* When a virtual machine is on-boarded on Azure Monitor, two agents get installed on the virtual machines - Microsoft Monitoring Agent (a.k.a. Log Analytics Agent), and Dependency Agent
+* Activity log allows monitoring activities / operations being performed in a subscription or account viz. resource creation, deletion etc.
+* AD Sign-in logs can be fed to Log Analytics workspace using Diagnostics settings (Azure AD P1 / P2 License needed)
+* Other Application Insights feature
+  * Smart Detection - Using machine learning algorithms on the telemetry data sent to Application Insights, it can identify potential performance problems and failure anomaries
+  * Continuous Export - It allows exporting the telemetry data to a storage account account cpntainer
 
 ## Azure Advisor
 
@@ -801,6 +806,10 @@ Backup type | Details | Usage
 ----------- | ------- | -----
 Full | A full backup contains the entire data source. Takes more network bandwidth than differential or incremental backups | Used for initial backup
 Incremental | An incremental backup stores only the blocks of data that changed since the previous backup. High storage and network efficiency. With incremental backup, there's no need to supplement with full backups | Used by DPM/MABS for disk backups, and used in all backups to Azure. Not used for SQL Server backup
+
+## Azure SQL
+
+* Two pricing models - DTU based and vCore based
 
 ## API Management Gateway
 
