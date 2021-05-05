@@ -323,6 +323,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * In Express Settings, the Azure AD Connect installation wizard asks for the following:
   * AD DS Enterprise Administrator credentials
   * Azure AD Global Administrator credentials
+* Azure AD P2 license are not required for users with Global Administrator or User Administrator roles to setup access review. However, to conduct access review, Azure AD P2 license is required
 
 ## Azure Bastion
 
