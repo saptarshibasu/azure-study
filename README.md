@@ -310,6 +310,16 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Free users do not have self service password reset, company branding etc.
   * P1, P2 exclusive features - Self-service password reset/change/unlock with on-premises write-back, Multi-Factor Authentication
   * P2 exclusive feature - Identity Protection, Privileged Identity Management (PIM) (elevated access), Access Review
+* Identity Protection
+  * Atypical travel
+  * Anonymous IP address
+  * Unfamiliar sign-in address
+  * Malware linked IP address
+  * Leaked credentials
+* To enable Privileged Identity Management
+  * Login as Global Administrator
+  * Verify Identity using MFA
+  * Consent to PIM 
 * Hybrid identity authentication methods
   * Password Hash Synchronization
     * To be used where the organization wants to reuse their existing on-prem active directory credentials in cloud
@@ -333,6 +343,18 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * AD DS Enterprise Administrator credentials
   * Azure AD Global Administrator credentials
 * Azure AD P2 license are not required for users with Global Administrator or User Administrator roles to setup access review. However, to conduct access review, Azure AD P2 license is required
+* Steps to connect to SQL Server from Virtual Machine
+  * Enable Managed Service Identity on virtual machine
+  * On the SQL Server, enable one of the users in Azure AD as the admin in SQL Server 
+  * Connect to the SQL Server with the admin user (Azure AD Authentication mechanism)
+  * `CREATE USER <virtual_machine_name> FROM EXTERNAL PROVIDER` (Successful only if there is a system assigned identity - Step 1)
+  * `ALTER ROLE db_datareader ADD MEMBER apivm`
+  * Application on Virtual Machine gets access token from the local service `http://169.254.169.254/metadata/identity/oauth2/token` and connects to the SQL server
+  * (Note: IP address of the Virtual Machine needs to be added to the SQL server firewall)
+* Steps to connect to Cosmos db from Virtual Machine
+  * Enable Managed Service Identity on virtual machine
+  * On the cosmos db IAM, assign Account Contributor role to the Virtual Machine (VM is visible only if the system assigned identity is enabled)
+  * Application on Virtual Machine gets access token from the local service `http://169.254.169.254/metadata/identity/oauth2/token`, uses the acess token to get the access keys of the db, and then uses the access keys to access the db
 
 ## Azure Bastion
 
