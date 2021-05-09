@@ -44,6 +44,8 @@
 
 [Azure SQL](#azure-sql)
 
+[Azure Blueprints](#azure-blueprints)
+
 [API Management Gateway](#api-management-gateway)
 
 [Azure Stream Analytics](#azure-stream-analytics)
@@ -64,6 +66,13 @@ Contributor | Grants full access to manage all resources, but does not allow you
 Owner | Grants full access to manage all resources, including the ability to assign roles in Azure RBAC
 Reader | View all resources, but does not allow you to make any changes
 User Access Administrator | Lets you manage user access to Azure resources
+
+* Resource Locks
+  * **CanNotDelete** - Authorized users can read or modify the resource, but can't delete the resource
+  * **ReadOnly** - Authorized users can only read a resource, but can't delete or update the resource
+* Resource Locks can be applied at resource level, resource group level, or subscription level
+* Resource Locks when created at the resource group or subscription level, all resources underneath them inherit the lock
+
 
 ## Resource Groups
 * A container that holds related resources for an Azure solution
@@ -811,6 +820,19 @@ Incremental | An incremental backup stores only the blocks of data that changed 
 ## Azure SQL
 
 * Two pricing models - DTU based and vCore based
+
+## Azure Blueprints
+
+* Azure Blueprints enables cloud architects to define a repeatable set of Azure resources that implements and adheres to an organization's standards, patterns, and requirements such that the new environments can be built rapidly with confidence following organizational requirements
+* The service is designed to help with environment setup. This setup often consists of a set of resource groups, policies, role assignments, and ARM template deployments
+* Blueprints can be assigned to management groups or subscriptions
+* Contributor access is needed to save the Blueprint definition in either the management group or the subscription
+* Resources deployed by the Blueprint can be protected by the Blueprint resource lock. The lock can only be removed by unassigning the blueprint. even the user with the Owner role cannot remove the lock
+* Following types of artifact types can be added to a blue print
+  * Policy
+  * Role
+  * ARM Template
+  * Resource Group
 
 ## API Management Gateway
 
