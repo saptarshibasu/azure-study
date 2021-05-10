@@ -67,6 +67,7 @@ Owner | Grants full access to manage all resources, including the ability to ass
 Reader | View all resources, but does not allow you to make any changes
 User Access Administrator | Lets you manage user access to Azure resources
 
+* RBAC roles can be assigned to users or groups at the subscription, resource group, or resource level. E.g. if at a resource group level, a user is assigned the contributor role, the user will be able to manage all resources within the resource group
 * Resource Locks
   * **CanNotDelete** - Authorized users can read or modify the resource, but can't delete the resource
   * **ReadOnly** - Authorized users can only read a resource, but can't delete or update the resource
@@ -309,13 +310,15 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Free has object limit of 5,00,000. Basic, P1, P2  have no object limit
   * Free users do not have self service password reset, company branding etc.
   * P1, P2 exclusive features - Self-service password reset/change/unlock with on-premises write-back, Multi-Factor Authentication
-  * P2 exclusive feature - Identity Protection, Privileged Identity Management (PIM) (elevated access), Access Review
-* Identity Protection
+  * P2 exclusive feature - Identity Protection, Privileged Identity Management (PIM), Access Review, Conditional Access Policies
+* Identity Protection alerts the users and administrators about following risks, optionally enforcess password change etc.
   * Atypical travel
   * Anonymous IP address
   * Unfamiliar sign-in address
   * Malware linked IP address
   * Leaked credentials
+* Privileged Identity Management allows administrators to grant or make users eligible to assume privileged roles for a fixed duration to perform certain activities
+* Conditional Access Policies allow administrators to enforce MFA on users in bulk based on various criteria 
 * To enable Privileged Identity Management
   * Login as Global Administrator
   * Verify Identity using MFA
@@ -339,6 +342,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Federation integration
   * Synchronisation
   * Health Monitoring
+* Azure AD Connect password write back allows writing back the password changes made in the Azure AD to the on-prem Active Directory. However, Azure AD Connect syncs the identity from the on-prem AD to Azure AD and not the other way around
 * In Express Settings, the Azure AD Connect installation wizard asks for the following:
   * AD DS Enterprise Administrator credentials
   * Azure AD Global Administrator credentials
