@@ -46,6 +46,8 @@
 
 [Azure Blueprints](#azure-blueprints)
 
+[Azure Sentinel](#azure-sentinel)
+
 [API Management Gateway](#api-management-gateway)
 
 [Azure Stream Analytics](#azure-stream-analytics)
@@ -486,6 +488,9 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 
 ## Security Center
 
+* Provides security score, recommendations, quick fixes, vulnerabilities in Azure subscriptions
+* Just-in-Time access to VMs - Provides RDP access to VMs for limited time period by adding appropriate rules to Network Security Groups with appropriate priorities
+
 ## Azure Data Lake Storage
 
 * Azure Data Lake Storage Gen2 is a set of capabilities dedicated to big data analytics, built on Azure Blob storage
@@ -859,6 +864,13 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * Role
   * ARM Template
   * Resource Group
+
+## Azure Sentinel
+
+* Azure Sentinel provides datavisualization, incident creation etc. for security
+* Provides data in-built data connectors with queries, workbooks etc. that collect data into Log Analytics workspace
+* Provides in-built rules and also allows creating custom rules that execute periodically and when query results satisfy conditions, incidents are created
+* Security events from Azure or non-Azure windows Virtual Machines can be streamed to Azure Sentinel and security inidents can also be created using rules
 
 ## API Management Gateway
 
