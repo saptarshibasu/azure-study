@@ -216,8 +216,8 @@ User Access Administrator | Lets you manage user access to Azure resources
   * Enterprises that require central control over security aspects, such as a firewall in the hub as a DMZ, and segregated management for the workloads in each spoke
 * For service chaining, enable IP forwarding in the NIC of the virtual appliance to be able to forward the traffic
 
-| VNet Peering | VPN Gateways
-| ------------ | ------------
+Details | VNet Peering | VPN Gateways
+------- | ------------ | ------------
 Encrypted? | Software level encryption level encryption is recommended | Yes
 Bandwidth Limitations? | No bandwidth limitations | Varies based on type of Gateway from 100 Mbps to 1.25Gps
 Private? | Yes, no Public IP endpoints. Routed through Microsoft backbone and is completely private. No public internet involved | Public IP involved
