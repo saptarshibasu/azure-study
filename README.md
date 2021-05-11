@@ -201,7 +201,7 @@ User Access Administrator | Lets you manage user access to Azure resources
 * The gateway in the peered virtual network can be configured as a transit point to an on-premises network. In this case, the virtual network that is using a remote gateway can't have its own gateway
 * Transitive peering is not supported. If A is peered with B, and B with C, A cannot talk to C unless explicitly peered with C
 * In a hub and spoke network topology, the hub virtual network can have a VPN Gateway that allows trafiic from the spoke virtual networks to the on-premise virtual networks. The same VPN Gateway can also allow traffic between the spoke virtual networks that are not directly peered with each other
-* Traffice between spokes not directly peered can be allowed by the following config:
+* Traffic between spokes not directly peered can be allowed by the following config:
   * Allow both the **spoke-to-hub** peering connections to use the remote virtual network's (hub network) gateway
   * Allow forwarded traffic from remote virtual network in both the **spoke-to-hub** peering connections
   * Add UDR in the spoke VNets to route the traffic meant for the other spoke to the hub virtual network gateway or other virtual appliance
@@ -214,6 +214,15 @@ User Access Administrator | Lets you manage user access to Azure resources
   * Workloads deployed in different environments, such as development, testing, and production, that require shared services such as DNS, IDS, NTP, or AD DS. Shared services are placed in the hub virtual network, while each environment is deployed to a spoke to maintain isolation
   * Workloads that do not require connectivity to each other, but require access to shared services
   * Enterprises that require central control over security aspects, such as a firewall in the hub as a DMZ, and segregated management for the workloads in each spoke
+* For service chaining, enable IP forwarding in the NIC of the virtual appliance to be able to forward the traffic
+
+| VNet Peering | VPN Gateways
+| ------------ | ------------
+Encrypted? | Software level encryption level encryption is recommended | Yes
+Bandwidth Limitations? | No bandwidth limitations | Varies based on type of Gateway from 100 Mbps to 1.25Gps
+Private? | Yes, no Public IP endpoints. Routed through Microsoft backbone and is completely private. No public internet involved | Public IP involved
+Transitive relationship | If VNet A is peered to VNet B, and VNet B is peered to VNet C, VNet A and VNet C cannot currently communicate. Spoke to spoke communication can be achieved via NVAs or Gateways in the hub VNet | If VNet A, VNet B, and VNet C are connected via VPN Gateways and BGP is enabled in the VNet connections, transitivity works
+Typical customer scenarios | Data replication, database failover, and other scenarios needing frequent backups of large data | Encryption specific scenarios that are not latency sensitive and do not need high throughout
 
 ### Routing
 
@@ -389,6 +398,8 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Protocol type
 * Affinity to a source IP address is created by using a two or three-tuple hash
 * Azure Load Balancer has an idle timeout setting of 4 minutes to 30 minutes. By default, it is set to 4 minutes. To keep the session alive, use TCP keep-alive
+
+![Choosing Load Balancer](load-balancing-decision-tree.png)
 
 ## Azure Firewall
 
