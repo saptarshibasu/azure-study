@@ -283,8 +283,8 @@ Typical customer scenarios | Data replication, database failover, and other scen
 * Availability Set
   * Each virtual machine in an availability set is assigned an update domain and a fault domain by the underlying Azure platform
   * Each availability set can be configured with up to three fault domains and twenty update domains
-  * Update domains indicate groups of virtual machines and underlying physical hardware that can be rebooted at the same time
-  * Fault domains define the group of virtual machines that share a common power source and network switch
+  * Update domains indicate groups of virtual machines and underlying physical hardware that can be rebooted at the same time (planned maintenance)
+  * Fault domains define the group of virtual machines that share a common power source and network switch (unplanned)
 * Scale Set
   * Scale sets are used to run multiple instances of an application. If one of these VM instances has a problem, customers continue to access your application through one of the other VM instances with minimal interruption
   * An Azure virtual machine scale set can automatically increase or decrease the number of VM instances that run the application
@@ -314,6 +314,7 @@ Max throughput | 2,000 MB/s | 900 MB/s | 750 MB/s | 500 MB/s
 Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 
 * Any client running on a VM can acquire an access token by making a REST call to the VM at the endpoint: `http://169.254.169.254/metadata/identity/oauth2/token`. The token is based on the managed identity service principal and suitable for use as a bearer token in service-to-service calls requiring client credentials
+* When a disk is attached to a VM, it remains in a raw disk until it is formatted. To accomplish this, a PowerShell script needs to be deployed to Azure VM scale set instances via the Custom Script extension. The script will be first stored in an Azure Storage container. At the time of installation of Custom Script extension, the script is retrieved from the Azure Storage container
 
 ## Azure AD
 
@@ -401,6 +402,12 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Protocol type
 * Affinity to a source IP address is created by using a two or three-tuple hash
 * Azure Load Balancer has an idle timeout setting of 4 minutes to 30 minutes. By default, it is set to 4 minutes. To keep the session alive, use TCP keep-alive
+* Azure Load Balancer needs following configurations:
+  * Frontend IP configuration - Public IP allocation
+  * Backend pools - Pooling all backend VMs or scale set
+  * Health probes
+  * Load balancing rules
+  * Inbound NAT rules - Routing rules to individual VMs
 
 ![Choosing Load Balancer](load-balancing-decision-tree.png)
 
@@ -419,50 +426,27 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 
 ## Application Gateway
 
-* Azure Application Gateway is a managed web traffic load balancer and HTTP(S) full reverse proxy that can do secure socket layer (SSL) encryption and decryption
+* Azure Application Gateway is a managed web traffic load balancer and HTTP(S) full reverse proxy
 * Application Gateway can make routing decisions based on additional attributes of an HTTP request, for example URI path or host headers. This type of routing is known as application layer (OSI layer 7) load balancing
-* Application Gateway also uses Web Application Firewall to inspect web traffic and detect attacks at the HTTP layer
+* Application Gateway also uses Web Application Firewall (WAF) to inspect web traffic and detect attacks at the HTTP layer
 * Azure Application Gateway can be used as an internal application load balancer or as an internet-facing application load balancer. An internet-facing application gateway uses public IP addresses
-* Azure Web Application Firewall (WAF) on top of Azure Application Gateway is a security-hardened device with a limited attack surface that operates facing the public internet
-* Application Gateway doesn't act as a routing device with NAT, but behaves as a full reverse application proxy
 * Application Gateway terminates the web session from the client, and establishes a separate session with one of its backend servers
-* Use Application Gateway alone when there are only web applications in the virtual network, and network security groups (NSGs) provide sufficient output filtering
 * Azure Firewall and Application Gateway in parallel, the most common design, when you want Azure Application Gateway to protect HTTP(S) applications from web attacks, and Azure Firewall to protect all other workloads and filter outbound traffic
-* Application Gateway in front of Azure Firewall when you want Azure Firewall to inspect all traffic and WAF to protect web traffic, and the application needs to know the client's source IP address
-* Application Gateway in front of Azure Firewall captures the incoming packet's source IP address in the X-forwarded-for header. The source IP may be important to the backend servers in providing geolocation based services
-* Can be used with Kubernetes
 * Integrate reverse proxy services like API Management gateway with Application Gateway to provide functionality like API throttling or authentication proxy
-* An application gateway inserts four additional headers to all requests before it forwards the requests to the backend. These headers are x-forwarded-for, x-forwarded-proto, x-forwarded-port, and x-original-host
-* X-original-host header contains the original host header with which the request arrived
-* You can configure application gateway to modify request and response headers and URL by using Rewrite HTTP headers and URL or to modify the URI path by using a path-override setting. However, unless configured to do so, all incoming requests are proxied to the backend
-* If session affinity is enabled as an option, then it adds a gateway-managed affinity cookie
-* Application Gateway or WAF deployments under the autoscaling SKU can scale up or down based on changing traffic load patterns. Autoscaling also removes the requirement to choose a deployment size or instance count during provisioning
-* An Application Gateway or WAF deployment can span multiple Availability Zones, removing the need to provision separate Application Gateway instances in each zone with a Traffic Manager
-* Application Gateway v2 supports integration with Key Vault for server certificates that are attached to HTTPS enabled listeners
-* Application Gateway provides native support for WebSocket across all gateway sizes
-* To establish a WebSocket connection, a specific HTTP-based handshake is exchanged between the client and the server. If successful, the application-layer protocol is "upgraded" from HTTP to WebSockets, using the previously established TCP connection. Once this occurs, HTTP is completely out of the picture; data can be sent or received using the WebSocket protocol by both endpoints, until the WebSocket connection is closed
-* WebSocket has low overhead unlike HTTP and can reuse the same TCP connection for multiple request/responses resulting in a more efficient utilization of resources. WebSocket protocols are designed to work over traditional HTTP ports of 80 and 443
-* You can use application gateway to redirect traffic. It has a generic redirection mechanism which allows for redirecting traffic received at one listener to another listener or to an external site
-* A common redirection scenario for many web applications is to support automatic HTTP to HTTPS redirection to ensure all communication between application and its users occurs over an encrypted path
-* The following types of redirection are supported:
-  * 301 Permanent Redirect
-  * 302 Found
-  * 303 See Other
-  * 307 Temporary Redirect
-* Application Gateway redirection support offers the following capabilities:
-  * Global redirection - Redirects from one listener to another listener on the gateway. This enables HTTP to HTTPS redirection on a site.
-  * Path-based redirection - This type of redirection enables HTTP to HTTPS redirection only on a specific site area, for example a shopping cart area denoted by /cart/*.
-  * Redirect to external site - With this change, customers need to create a new redirect configuration object, which specifies the target listener or external site to which redirection is desired. The configuration element also supports options to enable appending the URI path and query string to the redirected URL
+* An application gateway inserts four additional headers to all requests before it forwards the requests to the backend. These headers are x-forwarded-for (source IP), x-forwarded-proto, x-forwarded-port, and x-original-host
 * Advantages of TLS termination at the Gateway:
   * Improved performance – The biggest performance hit when doing TLS decryption is the initial handshake. To improve performance, the server doing the decryption caches TLS session IDs and manages TLS session tickets. If this is done at the application gateway, all requests from the same client can use the cached values. If it’s done on the backend servers, then each time the client’s requests go to a different server the client must re‑authenticate. The use of TLS tickets can help mitigate this issue, but they are not supported by all clients and can be difficult to configure and manage
   * Better utilization of the backend servers – SSL/TLS processing is very CPU intensive, and is becoming more intensive as key sizes increase. Removing this work from the backend servers allows them to focus on what they are most efficient at, delivering content
   * Intelligent routing – By decrypting the traffic, the application gateway has access to the request content, such as headers, URI, and so on, and can use this data to route requests
   * Certificate management – Certificates only need to be purchased and installed on the application gateway and not all backend servers. This saves both time and money
-* For the TLS connection to work, you need to ensure that the TLS/SSL certificate meets the following conditions:
-  * That the current date and time is within the "Valid from" and "Valid to" date range on the certificate
-  * That the certificate's "Common Name" (CN) matches the host header in the request. For example, if the client is making a request to https://www.contoso.com/, then the CN must be www.contoso.com
 * You may not want unencrypted communication to the backend servers. You may have security requirements, compliance requirements, or the application may only accept a secure connection. Azure Application Gateway has end-to-end TLS encryption to support these requirements
 * When configured with end-to-end TLS communication mode, Application Gateway terminates the TLS sessions at the gateway and decrypts user traffic. It then applies the configured rules to select an appropriate backend pool instance to route traffic to. Application Gateway then initiates a new TLS connection to the backend server and re-encrypts data using the backend server's public key certificate before transmitting the request to the backend. Any response from the web server goes through the same process back to the end user
+* App Gateway backend pool target types
+  * IP address or FQDN
+  * Virtual machine
+  * Virtual machine scale set
+  * App services
+* Azure Application Gateway can be configured with an Internet-facing VIP or with an internal endpoint that isn't exposed to the Internet. An internal endpoint uses a private IP address for the frontend, which is also known as an internal load balancer (ILB) endpoint
 
 ## Azure Front Door
 
