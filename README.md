@@ -42,12 +42,21 @@
 
 [Azure Backup](#azure-backup)
 
+[Azure Site Recovery](#azure-site-recovery)
+
+[Azure Migrate](#azure-migrate)
+
 [Azure SQL](#azure-sql)
+
+[Azure Cosmos DB](#azure-cosmos-db)
+
+[Azure Kubernetes](#azure-kubernetes)
 
 [Azure Blueprints](#azure-blueprints)
 
-[Script](#script)
+[Azure Sentinel](#azure-sentinel)
 
+[Script](#script)
 
 ## Basics
 
@@ -70,8 +79,8 @@ User Access Administrator | Lets you manage user access to Azure resources
 * Resource Locks can be applied at resource level, resource group level, or subscription level
 * Resource Locks when created at the resource group or subscription level, all resources underneath them inherit the lock
 
-
 ## Resource Groups
+
 * A container that holds related resources for an Azure solution
 * Generally used to hold resources that share the same lifecycle, so they can be easily deployed, updated, and deleted as a group
 * The region of the resource group indicates the region where the resource group metadata will be stored
@@ -195,7 +204,7 @@ User Access Administrator | Lets you manage user access to Azure resources
 * The gateway in the peered virtual network can be configured as a transit point to an on-premises network. In this case, the virtual network that is using a remote gateway can't have its own gateway
 * Transitive peering is not supported. If A is peered with B, and B with C, A cannot talk to C unless explicitly peered with C
 * In a hub and spoke network topology, the hub virtual network can have a VPN Gateway that allows trafiic from the spoke virtual networks to the on-premise virtual networks. The same VPN Gateway can also allow traffic between the spoke virtual networks that are not directly peered with each other
-* Traffice between spokes not directly peered can be allowed by the following config:
+* Traffic between spokes not directly peered can be allowed by the following config:
   * Allow both the **spoke-to-hub** peering connections to use the remote virtual network's (hub network) gateway
   * Allow forwarded traffic from remote virtual network in both the **spoke-to-hub** peering connections
   * Add UDR in the spoke VNets to route the traffic meant for the other spoke to the hub virtual network gateway or other virtual appliance
@@ -208,6 +217,15 @@ User Access Administrator | Lets you manage user access to Azure resources
   * Workloads deployed in different environments, such as development, testing, and production, that require shared services such as DNS, IDS, NTP, or AD DS. Shared services are placed in the hub virtual network, while each environment is deployed to a spoke to maintain isolation
   * Workloads that do not require connectivity to each other, but require access to shared services
   * Enterprises that require central control over security aspects, such as a firewall in the hub as a DMZ, and segregated management for the workloads in each spoke
+* For service chaining, enable IP forwarding in the NIC of the virtual appliance to be able to forward the traffic
+
+Details | VNet Peering | VPN Gateways
+------- | ------------ | ------------
+Encrypted? | Software level encryption level encryption is recommended | Yes
+Bandwidth Limitations? | No bandwidth limitations | Varies based on type of Gateway from 100 Mbps to 1.25Gps
+Private? | Yes, no Public IP endpoints. Routed through Microsoft backbone and is completely private. No public internet involved | Public IP involved
+Transitive relationship | If VNet A is peered to VNet B, and VNet B is peered to VNet C, VNet A and VNet C cannot currently communicate. Spoke to spoke communication can be achieved via NVAs or Gateways in the hub VNet | If VNet A, VNet B, and VNet C are connected via VPN Gateways and BGP is enabled in the VNet connections, transitivity works
+Typical customer scenarios | Data replication, database failover, and other scenarios needing frequent backups of large data | Encryption specific scenarios that are not latency sensitive and do not need high throughout
 
 ### Routing
 
@@ -384,6 +402,8 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * Affinity to a source IP address is created by using a two or three-tuple hash
 * Azure Load Balancer has an idle timeout setting of 4 minutes to 30 minutes. By default, it is set to 4 minutes. To keep the session alive, use TCP keep-alive
 
+![Choosing Load Balancer](load-balancing-decision-tree.png)
+
 ## Azure Firewall
 
 * Azure Firewall is a managed next-generation firewall that offers network address translation (NAT)
@@ -396,7 +416,6 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * Even if all clients are located on-premises or in Azure, both the Azure Application Gateway and the Azure Firewall need to have public IP addresses, so that Microsoft can manage the services
 * In a hub and spoke architecture, Azure Firewall, Application Gateway, and API Management gateway components uasually all go to the hub virtual network
 * Can be used with Kubernetes
-
 
 ## Application Gateway
 
@@ -445,7 +464,6 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * You may not want unencrypted communication to the backend servers. You may have security requirements, compliance requirements, or the application may only accept a secure connection. Azure Application Gateway has end-to-end TLS encryption to support these requirements
 * When configured with end-to-end TLS communication mode, Application Gateway terminates the TLS sessions at the gateway and decrypts user traffic. It then applies the configured rules to select an appropriate backend pool instance to route traffic to. Application Gateway then initiates a new TLS connection to the backend server and re-encrypts data using the backend server's public key certificate before transmitting the request to the backend. Any response from the web server goes through the same process back to the end user
 
-
 ## Azure Front Door
 
 * If Azure Firewall is used in front of the Application Gateway to filter the maliscious traffic, the source client IP can be injected in the client request as HTTP header by placing Azure Front Door in front of the firewall
@@ -481,6 +499,9 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * **Nested endpoints** are used to combine Traffic Manager profiles to create more flexible traffic-routing schemes to support the needs of larger, more complex deployments
 
 ## Security Center
+
+* Provides security score, recommendations, quick fixes, vulnerabilities in Azure subscriptions
+* Just-in-Time access to VMs - Provides RDP access to VMs for limited time period by adding appropriate rules to Network Security Groups with appropriate priorities
 
 ## Azure Data Lake Storage
 
@@ -552,20 +573,20 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * A storage account provides a unique namespace in Azure for your data
 * Format of the endpoint URL of the storage services is: `http://*mystorageaccount*.*service*.core.windows.net`, where *service* can be 'blob' (for Blob storage), 'dfs' (for Data Lake Storage Gen2), 'file' (for Azure files), 'queue' (for Azure queue storage), and 'table' (for Azure table storage).
 * The types of storage accounts (excluding legacy types)
-  * **Sandard general purpose v2** - 
+  * **Sandard general purpose v2** -
     * Basic storage account type for blobs (all types - block, append, page), files, queues, and tables. Recommended for most scenarios using Azure Storage
     * Supports all redundancy types - LRS, GRS, RA-GRS, ZRS, GZRS, RA-GZRS
-  * **Premium block blob** - 
+  * **Premium block blob** -
     * Storage accounts with premium performance characteristics for block blobs and append blobs
     * Recommended for scenarios with high transactions rates, or scenarios that use smaller objects or require consistently low storage latency
     * Supports only LRS and ZRS
     * Backed by SSD
-  * **Premium file shares** - 
+  * **Premium file shares** -
     * Files-only storage accounts with premium performance characteristics
     * Recommended for enterprise or high performance scale applications
     * Supports only LRS and ZRS
     * Backed by SSD
-  * **Premium page blobs** - 
+  * **Premium page blobs** -
     * foundation of Azure IaaS Disks
     * Supports only LRS and ZRS
     * Backed by SSD
@@ -574,11 +595,11 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
     * Replicates data three times within a single data center in the primary region
     * 99.999999999% (11 nines) durability of objects over a given year
     * Protects against server rack and drive failures
-  * **Zone-redundant storage (ZRS)** - 
+  * **Zone-redundant storage (ZRS)** -
     * Replicates data synchronously across three Azure availability zones in the primary region
     * 99.9999999999% (12 9's) durability of objects over a given year
     * Data is still accessible for both read and write operations even if a zone becomes unavailable
-  * **Geo-redundant storage (GRS)** - 
+  * **Geo-redundant storage (GRS)** -
     * Cross-regional redundancy to protect against regional outages
     * Data is copied synchronously three times in the primary region, then copied asynchronously to the secondary region. In the secondary region, data is replicated synchronously using LRS. For read access to data in the secondary region, enable read-access geo-redundant storage (RA-GRS)
     * 99.99999999999999% (16 9's) durability of objects over a given year
@@ -591,28 +612,28 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * Because data is replicated to the secondary region asynchronously, a failure that affects the primary region may result in data loss if the primary region cannot be recovered. The interval between the most recent writes to the primary region and the last write to the secondary region is known as the recovery point objective (RPO). The RPO indicates the point in time to which data can be recovered. Azure Storage typically has an RPO of less than 15 minutes, although there's currently no SLA on how long it takes to replicate data to the secondary region
 * To determine which write operations have been replicated to the secondary region, your application can check the Last Sync Time property for your storage account. All write operations written to the primary region prior to the last sync time have been successfully replicated to the secondary region, meaning that they are available to be read from the secondary
 * Azure Blob Storage supports three types of blobs:
-  * **Block blobs** 
+  * **Block blobs**
     * Stores text and binary data
     * Max size 190.7 TiB
-  * **Append blobs** 
+  * **Append blobs**
     * Optimized for append operations
     * Append blobs are ideal for scenarios such as logging data from virtual machines
     * Max size 195 GiB
-  * **Page blobs** 
-    * Provides random access to files 
+  * **Page blobs**
+    * Provides random access to files
     * Max size 8 TiB
     * Stores virtual hard drive (VHD) files and serves as disks for Azure virtual machines
     * Can only use the Hot access tier, they cannot use either the Cool or Archive tiers
 * Azure Blob Storage offers different access tiers:
-  * **Hot** - 
+  * **Hot** -
     * Optimized for storing data that is accessed frequently
     * Storage availability - 99.9%, 99.99% (with RA-GRS reads)
-  * **Cool** - 
-    * Optimized for storing data that is infrequently accessed 
+  * **Cool** -
+    * Optimized for storing data that is infrequently accessed
     * Stored for at least 30 days
     * Storage availability - 99%, 99.9% (with RA-GRS reads)
-  * **Archive** - 
-    * Optimized for storing data that is rarely accessed 
+  * **Archive** -
+    * Optimized for storing data that is rarely accessed
     * Stored for at least 180 days with flexible latency requirements (on the order of hours)
     * Storage availability - offline
 * Only the hot and cool access tiers can be set at the account level. The archive access tier isn't available at the account level
@@ -725,11 +746,13 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * Event Hubs Capture enables setting up a window to control capturing. This window is a minimum size and time configuration with a "first wins policy," meaning that the first trigger encountered causes a capture operation. If there is a fifteen-minute, 100 MB capture window and 1 MB worth of data is sent per second, the size window triggers before the time window
 * Each partition captures independently and writes a completed block blob at the time of capture, named for the time at which the capture interval was encountered
 * The storage naming convention is as follows:
+
 ```
 {Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}
 
 https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhub/0/2017/12/08/03/03/17.avro
 ```
+
 * In the event that the Azure storage blob is temporarily unavailable, Event Hubs Capture will retain the data for the data retention period configured on the event hub and back fill the data once the storage account is available again
 * Event Hubs writes empty files when there is no data
 * Event Hubs Capture is metered similarly to throughput units: as an hourly charge. The charge is directly proportional to the number of throughput units purchased for the namespace
@@ -832,28 +855,71 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
 
 ## Azure Backup
 
-* With Azure Backup, following items can be backed up
-  * on-premises resources to the cloud
-  * Azure IaaS VMs
-* Back up on-premises machines:
-  * Back up on-premises Windows machines directly to Azure by using the Azure Backup Microsoft Azure Recovery Services (MARS) agent. Linux machines aren't supported.
-  * Back up on-premises machines to a backup server - either System Center Data Protection Manager (DPM) or Microsoft Azure Backup Server (MABS). The backup server isthen backed up to a Recovery Services vault in Azure.
-* Back up Azure VMs:
-  * Back up Azure VMs directly. Azure Backup installs a backup extension to the Azure VM agent that's running on the VM. This extension backs up the entire VM.
-  * Back up specific files and folders on the Azure VM by running the MARS agent.
-  * Back up Azure VMs to the MABS that's running in Azure, and then the MABS can be backed up to a Recovery Services vault.
-* Backups are stored in a Recovery Services vault with built-in management of recovery points
+* The Azure Backup service provides simple, secure, and cost-effective solutions to back up the data and recover it from the Microsoft Azure cloud
 * Azure Backup offers three types of replication - LRS, GRS, ZRS
+* Azure Backup stores backed-up data in vaults - Recovery Services vaults and Backup vaults. A vault is an online-storage entity in Azure that's used to hold data, such as backup copies, recovery points, and backup policies
 * Multiple virtual machines can be backed up by creating a backup policy on the recovery services vault and applying that policy to the desired virtual machines
+* Back up of on-premises machines:
+  * Back up on-premises Windows machines directly to Azure by using the Azure Backup Microsoft Azure Recovery Services (MARS) agent. Linux machines aren't supported
+  * Back up on-premises machines to a backup server (agentless) - either System Center Data Protection Manager (DPM) or Microsoft Azure Backup Server (MABS). The backup server is then backed up to a Recovery Services vault in Azure
+* Back up of Azure VMs:
+  * Back up Azure VMs directly. Azure Backup installs a backup extension to the Azure VM agent that's running on the VM. This extension backs up the entire VM
+  * Back up specific files and folders on the Azure VM by running the MARS agent
+  * Back up Azure VMs to the MABS that's running in Azure, and then the MABS can be backed up to a Recovery Services vault
 
 Backup type | Details | Usage
 ----------- | ------- | -----
 Full | A full backup contains the entire data source. Takes more network bandwidth than differential or incremental backups | Used for initial backup
 Incremental | An incremental backup stores only the blocks of data that changed since the previous backup. High storage and network efficiency. With incremental backup, there's no need to supplement with full backups | Used by DPM/MABS for disk backups, and used in all backups to Azure. Not used for SQL Server backup
 
+## Azure Site Recovery
+
+* Site Recovery contributes to your business continuity and disaster recovery (BCDR) strategy, by orchestrating and automating replication of Azure VMs between regions, on-premises virtual machines and physical servers to Azure, and on-premises machines to a secondary datacenter
+* When an outage occurs at the primary site, Site Recovery allows failing over to the secondary location, and access apps from there. After the primary location is running again, fail back to the primary site is possible
+* Protection of VMs using Azure Site Recovery
+  * For protection of Hyper-V VMs, the Azure Site Recovery Provider and Azure Site Recovery Agent are installed on the Hyper-V host
+  * The Azure Site Recovery Provider orchestrates replication with Site Recovery over the internet. The Recovery Services agent handles data replication
+  * When a planned failover is triggered, source VMs are shut down to ensure no data loss
+  * An unplanned failover can be triggered, if the primary site is not accessible
+  * A test failover can be triggered to test the setup. Once the test is successful, Cleanup test failover action can be triggered to delete the test VMs
+
+## Azure Migrate
+
+* Steps of vmware migration
+  * **Pre-requisites** - Set up prerequisites and ensure both environments have the needed permissions
+  * **Azure Migrate Setup** - Set up an Azure Migrate project, including the tools for assessment and migration
+  * **Discover VMs** - Download a virtual machine appliance and deploy it in VMware environment to discover virtual machines and dependencies
+  * **Review Assessment** - Review the assessment and dependencies from Azure Migrate while scoping the target migration
+  * **Replicate VMs** - Replicate virtual machines from VMware into Azure storage
+  * **Test Migration** - Test virtual machines using a test virtual network. Once test is done, cleanup can be invoked to delete the test VMs
+  * **Migrate to Production** - Migrate virtual machines into production using a production virtual network
+
 ## Azure SQL
 
 * Two pricing models - DTU based and vCore based
+
+## Azure Cosmos DB
+
+* Supported APIs
+  * Core (SQL)
+  * Azure Cosmos DB for MongoDB API
+  * Cassandra
+  * Azure Table
+  * Gremlin (graph)
+
+## Azure Kubernetes
+
+* Check Pods
+`kubectl get pods`
+
+* Replicate vote-Front
+`kubectl scale --replicas=3 deployment/azure-vote-front`
+
+* Check with below command:
+`kubectl get pods`
+
+* AutoScale Rule
+`kubectl autoscale deployment azure-vote-front --cpu-percent=50 --min=3 --max=10`
 
 ## Azure Blueprints
 
@@ -867,6 +933,13 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * Role
   * ARM Template
   * Resource Group
+
+## Azure Sentinel
+
+* Azure Sentinel provides datavisualization, incident creation etc. for security
+* Provides data in-built data connectors with queries, workbooks etc. that collect data into Log Analytics workspace
+* Provides in-built rules and also allows creating custom rules that execute periodically and when query results satisfy conditions, incidents are created
+* Security events from Azure or non-Azure windows Virtual Machines can be streamed to Azure Sentinel and security inidents can also be created using rules
 
 ## Script
 
