@@ -447,6 +447,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Virtual machine scale set
   * App services
 * Azure Application Gateway can be configured with an Internet-facing VIP or with an internal endpoint that isn't exposed to the Internet. An internal endpoint uses a private IP address for the frontend, which is also known as an internal load balancer (ILB) endpoint
+* There are two primary methods of routing traffic, path-based routing and multiple site hosting
 
 ## Azure Front Door
 
