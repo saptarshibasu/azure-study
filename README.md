@@ -46,10 +46,6 @@
 
 [Azure Blueprints](#azure-blueprints)
 
-[API Management Gateway](#api-management-gateway)
-
-[Azure Stream Analytics](#azure-stream-analytics)
-
 [Script](#script)
 
 
@@ -812,6 +808,18 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
 * Other Application Insights feature
   * Smart Detection - Using machine learning algorithms on the telemetry data sent to Application Insights, it can identify potential performance problems and failure anomaries
   * Continuous Export - It allows exporting the telemetry data to a storage account account cpntainer
+* Azure monitor allows to create alert rules such that based on a custom Log Analytics query result the following can be invoked
+  * Automation Runbook
+  * Azure Function
+  * ITSM
+  * Logic App
+  * Secure Webhook
+  * Webhook
+* Alert rules consists of
+  * Resource
+  * Condition (depending on the resource)
+  * Action groups and associated actions
+* Alert rules can also send notifications - SMS/ Email / Push / Voice
 
 ## Azure Advisor
 
@@ -859,10 +867,6 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * Role
   * ARM Template
   * Resource Group
-
-## API Management Gateway
-
-## Azure Stream Analytics
 
 ## Script
 
