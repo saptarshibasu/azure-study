@@ -213,10 +213,6 @@ User Access Administrator | Lets you manage user access to Azure resources
   * Cost savings by centralizing services that can be shared by multiple workloads, such as network virtual appliances (NVAs) and DNS servers, in a single location
   * Overcome subscriptions limits by peering virtual networks from different subscriptions to the central hub
   * Separation of concerns between central IT (SecOps, InfraOps) and workloads (DevOps)
-* Typical uses for this architecture include:
-  * Workloads deployed in different environments, such as development, testing, and production, that require shared services such as DNS, IDS, NTP, or AD DS. Shared services are placed in the hub virtual network, while each environment is deployed to a spoke to maintain isolation
-  * Workloads that do not require connectivity to each other, but require access to shared services
-  * Enterprises that require central control over security aspects, such as a firewall in the hub as a DMZ, and segregated management for the workloads in each spoke
 * For service chaining, enable IP forwarding in the NIC of the virtual appliance to be able to forward the traffic
 
 Details | VNet Peering | VPN Gateways
@@ -229,14 +225,10 @@ Typical customer scenarios | Data replication, database failover, and other scen
 
 ### Routing
 
-* BGP can be used to enable the Azure VPN Gateways and on-premises VPN devices, called BGP peers or neighbors, to exchange "routes" that will inform both gateways on the availability and reachability for those prefixes to go through the gateways or routers involved
 * Every subnet has a route table that contains the following minimum routes:
   * **LocalVNet** - Route for local addresses (Virtual Network is the next hop address)
   * **Internet** - Route for all traffic destined to the internet (Internet Gateway is the next hop address)
   * **Reserved IP addresses** - Route for all traffic destined to the reserved IP addresses (Next hop address is None. Thus all packets will be dropped)
-* Default routing in a subnet (can be overridden by User Defined Routes (UDR))
-  * If destination is in the on-premises address space - it is routed to the Virtual Network Gateway
-* All resources in the Virtual Network have outbound internet connectivity by default. Here a private IP is SNAT to a public IP selected by Azure. However, at high scale, this default behaviour may occasionally fail due to unavailability of free port in public IP address selected by Azure giving frequent TCP timeout error. Therefore, in such circumstances, a **NAT Gateway** should be used for the subnet
 * For Inbound connectivity a public IP is necessary
 * Options for providing inbound internet connection
   * Adding a public IP to the service (not recommended)
@@ -246,9 +238,9 @@ Typical customer scenarios | Data replication, database failover, and other scen
   * **Virtual Network** - For each address range of the VNet
   * **Internet** - If you don't override Azure's default routes, Azure routes traffic for any address not specified by an address range within a virtual network, to the Internet, with one exception. If the destination address is for one of Azure's services, Azure routes the traffic directly to the service over Azure's backbone network, rather than routing the traffic to the Internet
   * **None** - Traffic routed to the None next hop type is dropped
-  * **Virtual network (VNet) peering** - When you create a virtual network peering between two virtual networks, a route is added for each address range within the address space of each virtual network a peering is created for
-  * **Virtual network gateway** - One or more routes with Virtual network gateway listed as the next hop type are added when a virtual network gateway is added to a virtual network. If your on-premises network gateway exchanges border gateway protocol (BGP) routes with an Azure virtual network gateway, a route is added for each route propagated from the on-premises network gateway
-  * **VirtualNetworkServiceEndpoint** - The public IP addresses for certain services are added to the route table by Azure when you enable a service endpoint to the service. Service endpoints are enabled for individual subnets within a virtual network, so the route is only added to the route table of a subnet a service endpoint is enabled for
+  * **Virtual network (VNet) peering** - When a virtual network peering is created between two virtual networks, a route is added for each address range within the address space of each virtual network a peering is created for
+  * **Virtual network gateway** - One or more routes with Virtual network gateway listed as the next hop type are added when a virtual network gateway is added to a virtual network. If the on-premises network gateway exchanges border gateway protocol (BGP) routes with an Azure virtual network gateway, a route is added for each route propagated from the on-premises network gateway
+  * **VirtualNetworkServiceEndpoint** - The public IP addresses for certain services are added to the route table by Azure when a service endpoint is enabled to the service. Service endpoints are enabled for individual subnets within a virtual network, so the route is only added to the route table of a subnet a service endpoint is enabled for
   * **Virtual appliance** - A virtual appliance is a virtual machine that typically runs a network application, such as a firewall
 * In Azure, a route table can be associated to zero or more virtual network subnets
 * Each subnet can have zero or one route table associated to it
@@ -256,9 +248,9 @@ Typical customer scenarios | Data replication, database failover, and other scen
   * User-defined route
   * BGP route
   * System route
-* Deploy a virtual appliance into a different subnet than the resources that route through the virtual appliance are deployed in. Deploying the virtual appliance to the same subnet, then applying a route table to the subnet that routes traffic through the virtual appliance, can result in routing loops, where traffic never leaves the subnet
+* Deploy a virtual appliance into a different subnet than the resources that route through the virtual appliance. Deploying the virtual appliance to the same subnet, then applying a route table to the subnet that routes traffic through the virtual appliance, can result in routing loops, where traffic never leaves the subnet
 * NAT Gateway is a completely managed service through which goes all the outbound connections to the internet. The NAT gateway does the address translation from the private IP to a fixed range of public IP. This helps in whitelisting IPs
-* Load Balancer is for the inbound connections
+* Virtual Network (VNet) service endpoint provides secure and direct connectivity to Azure services over an optimized route over the Azure backbone network. Endpoints allow securing the critical Azure service resources to only specific virtual networks. Service Endpoints enables private IP addresses in the VNet to reach the endpoint of an Azure service without needing a public IP address on the VNet
 
 ### DNS
 
@@ -266,7 +258,7 @@ Typical customer scenarios | Data replication, database failover, and other scen
 * Azure DNS provides an **authoritative** DNS service
 * If the user buys a custom domain contoso.net, the domain name registrar allows the user to setup NS record to point to the authoritative name server (in this case Azure DNS). The registrar stores the NS records in the .net parent zone
 * **Azure Private DNS** manages and resolves domain names in the virtual network 
-* Azure provided name resolution provides only basic authoritative DNS capabilities. For a fully featured DNS solution, Azure DNS private zones along with  Customer-managed DNS servers must be used
+* Azure provided name resolution provides only basic authoritative DNS capabilities. For a fully featured DNS solution, Azure DNS private zones along with Customer-managed DNS servers must be used
 * When resources deployed in virtual networks need to resolve domain names to internal IP addresses, they can use one of three methods:
   * Azure DNS private zones
   * Azure-provided name resolution (public DNS names and internal names)
@@ -345,7 +337,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
     * During authentication, there is no dependnecy on on-prem infrastructure
     * Security benefits: leaked credential report, smart lockout
   * Pass-through Authentication
-    * To be used where the organization wants to reuse their existing on-prem active directory credentials and security policies in cloud
+    * To be used where the organization wants to reuse their existing on-prem active directory credentials and security policies in cloud that are not supported in Azure AD
     * Security benefit: Smart lockout
   * Federation 
     * To be used where the organization has advanced requirements that are not natively supported by Azure AD
@@ -367,7 +359,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * On the SQL Server, enable one of the users in Azure AD as the admin in SQL Server 
   * Connect to the SQL Server with the admin user (Azure AD Authentication mechanism)
   * `CREATE USER <virtual_machine_name> FROM EXTERNAL PROVIDER` (Successful only if there is a system assigned identity - Step 1)
-  * `ALTER ROLE db_datareader ADD MEMBER apivm`
+  * `ALTER ROLE db_datareader ADD MEMBER <virtual_machine_name>`
   * Application on Virtual Machine gets access token from the local service `http://169.254.169.254/metadata/identity/oauth2/token` and connects to the SQL server
   * (Note: IP address of the Virtual Machine needs to be added to the SQL server firewall)
 * Steps to connect to Cosmos db from Virtual Machine
