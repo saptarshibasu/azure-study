@@ -56,6 +56,14 @@
 
 [Azure Sentinel](#azure-sentinel)
 
+[Azure File Sync](#azure-file-sync)
+
+[Azure Batch](#azure-batch)
+
+[Network Watcher](#network-watcher)
+
+[Azure Cache for Redis](#azure-cache-for-redis)
+
 [Script](#script)
 
 ## Basics
@@ -78,6 +86,8 @@ User Access Administrator | Lets you manage user access to Azure resources
   * **ReadOnly** - Authorized users can only read a resource, but can't delete or update the resource
 * Resource Locks can be applied at resource level, resource group level, or subscription level
 * Resource Locks when created at the resource group or subscription level, all resources underneath them inherit the lock
+* **RPO** - Recovery Point Objective - How much data can you afford to lose
+* **RTO** - Recovery Time Objective - If an issue occurs and a system goes down, how much time it takes to get things back to normal
 
 ## Resource Groups
 
@@ -139,6 +149,7 @@ User Access Administrator | Lets you manage user access to Azure resources
     * Support Availability Zones and can be zone-redundant or zonal
 * Inbound communication with a Standard SKU IP address fails until a network security group is created and associated explicitly to allow the desired inbound traffic
 * Virtual Network is tied to a specific region and a specific subscription
+* Network Security Group (NSG) can be assigned to VM (NIC) or to Subnet
 
 ### Hybrid Connectivity
 
@@ -151,12 +162,18 @@ User Access Administrator | Lets you manage user access to Azure resources
   * The enterprise datacenter needs to have a VPN device with a public IP assigned and it cannot be behind a NAT
   * The Gateway connection is over IPSec/IKE (IKE v1 or IKE v2) VPN tunnel
   * The connection is encrypted over the internet
+  * A gateway subnet of size /27 needs to be created to host the VPN Gateway
+  * A Local Network Gateway needs to be created to point to the on-premise router
 * **Point to Site (P2S)**
   * Allows remote workers to connect to the Azure. No need for VPN device. Users can connect as long as there is internet connection
   * the connection is encrypted over the internet
   * Users use the native VPN clients on Windows and Mac devices for P2S
   * The Aggregate Throughput Benchmark for a VPN Gateway is S2S + P2S combined. If you have a lot of P2S connections, it can negatively impact a S2S connection due to throughput limitations
   * The Aggregate Throughput (upto 100 Mbps) Benchmark is not a guaranteed throughput due to Internet traffic conditions and your application behaviors
+  * A gateway subnet of size /27 needs to be created to host the VPN Gateway
+  * A TLS ertificate based authentication mechanism is needed between Azure and the client
+  * The root certificate with the public key needs to be installed on the VPN Gateway
+  * The user certificate with the private key needs to be installed on the client system
 * P2S Possible protocols:
   * **OpenVPN® Protocol**, an SSL/TLS based VPN protocol. OpenVPN can be used to connect from Android, iOS (versions 11.0 and above), Windows, Linux and Mac devices (OSX versions 10.13 and above)
   * **Secure Socket Tunneling Protocol (SSTP)**, a Microsoft proprietary TLS-based VPN protocol. Azure supports all versions of Windows that have SSTP (Windows 7 and later)
@@ -250,7 +267,9 @@ Typical customer scenarios | Data replication, database failover, and other scen
   * System route
 * Deploy a virtual appliance into a different subnet than the resources that route through the virtual appliance. Deploying the virtual appliance to the same subnet, then applying a route table to the subnet that routes traffic through the virtual appliance, can result in routing loops, where traffic never leaves the subnet
 * NAT Gateway is a completely managed service through which goes all the outbound connections to the internet. The NAT gateway does the address translation from the private IP to a fixed range of public IP. This helps in whitelisting IPs
-* Virtual Network (VNet) service endpoint provides secure and direct connectivity to Azure services over an optimized route over the Azure backbone network. Endpoints allow securing the critical Azure service resources to only specific virtual networks. Service Endpoints enables private IP addresses in the VNet to reach the endpoint of an Azure service without needing a public IP address on the VNet
+* Service Endpoints allow VMs on a subnet access Azure services using private IP addresses over secured Azure backbone network. Thus the Azure service public endpoints can be disabled. The setup process is a two step process
+  * Create service endpoint on the subnet for the specific Azure service
+  * Add the subnet under the firewall of the specific Azure service
 
 ### DNS
 
@@ -307,6 +326,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 
 * Any client running on a VM can acquire an access token by making a REST call to the VM at the endpoint: `http://169.254.169.254/metadata/identity/oauth2/token`. The token is based on the managed identity service principal and suitable for use as a bearer token in service-to-service calls requiring client credentials
 * When a disk is attached to a VM, it remains in a raw disk until it is formatted. To accomplish this, a PowerShell script needs to be deployed to Azure VM scale set instances via the Custom Script extension. The script will be first stored in an Azure Storage container. At the time of installation of Custom Script extension, the script is retrieved from the Azure Storage container
+* Accelerated Networking is by default enabled. It reduces latency be removing an additional hop over the virtual switch
 
 ## Azure AD
 
@@ -570,20 +590,16 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * Azure storage redundancy types
   * **Locally redundant storage (LRS)** -
     * Replicates data three times within a single data center in the primary region
-    * 99.999999999% (11 nines) durability of objects over a given year
     * Protects against server rack and drive failures
   * **Zone-redundant storage (ZRS)** -
     * Replicates data synchronously across three Azure availability zones in the primary region
-    * 99.9999999999% (12 9's) durability of objects over a given year
     * Data is still accessible for both read and write operations even if a zone becomes unavailable
   * **Geo-redundant storage (GRS)** -
     * Cross-regional redundancy to protect against regional outages
     * Data is copied synchronously three times in the primary region, then copied asynchronously to the secondary region. In the secondary region, data is replicated synchronously using LRS. For read access to data in the secondary region, enable read-access geo-redundant storage (RA-GRS)
-    * 99.99999999999999% (16 9's) durability of objects over a given year
   * **Geo-zone-redundant storage (GZRS)** -
     * Cross-regional redundancy to protect against regional outages
     * Copied across three Azure availability zones in the primary region and is also replicated to a secondary geographic region for protection from regional disasters. In the secondary region, data is replicated synchronously using LRS. For read access to data in the secondary region, enable read-access geo-redundant storage (RA-GZRS)
-    * 99.99999999999999% (16 9's) durability of objects over a given year
 * With GRS or GZRS, the data in the secondary location isn't available for read or write access unless there is a failover to the secondary region
 * If the primary region becomes unavailable, you can choose to fail over to the secondary region. After the failover has completed, the secondary region becomes the primary region, and you can again read and write data
 * Because data is replicated to the secondary region asynchronously, a failure that affects the primary region may result in data loss if the primary region cannot be recovered. The interval between the most recent writes to the primary region and the last write to the secondary region is known as the recovery point objective (RPO). The RPO indicates the point in time to which data can be recovered. Azure Storage typically has an RPO of less than 15 minutes, although there's currently no SLA on how long it takes to replicate data to the secondary region
@@ -604,15 +620,19 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * Azure Blob Storage offers different access tiers:
   * **Hot** -
     * Optimized for storing data that is accessed frequently
-    * Storage availability - 99.9%, 99.99% (with RA-GRS reads)
+    * Can be set at the account or blob level. Blobs inherit account level setting
   * **Cool** -
     * Optimized for storing data that is infrequently accessed
     * Stored for at least 30 days
-    * Storage availability - 99%, 99.9% (with RA-GRS reads)
+    * Can be set at the account or blob level. Blobs inherit account level setting
   * **Archive** -
     * Optimized for storing data that is rarely accessed
     * Stored for at least 180 days with flexible latency requirements (on the order of hours)
     * Storage availability - offline
+    * Can only be set at the blob level
+    * Rehydration priority
+      * Standard priority - Within 15 hours
+      * High Priority - Within 1 hour for objects under 10 GB
 * Only the hot and cool access tiers can be set at the account level. The archive access tier isn't available at the account level
 * Hot, cool, and archive tiers can be set at the blob level during upload or after upload
 * Archive storage stores data offline and offers the lowest storage costs but also the highest data access costs
@@ -655,6 +675,10 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Blob Storage
   * Azure Files
   * Azure Data Lake Storage Gen2
+* Only Blobs and Azure Files can use customer managed keys for encryption. Azure tables and queues always use Azure managed encryption keys
+* Immutable Blob Storage - Blobs once created cannot be modified or deleted. Two policies
+  * **Legal hold** - indefinite hold
+  * **Time based retention**
 
 ## Azure App Service
 
@@ -820,6 +844,7 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * Condition (depending on the resource)
   * Action groups and associated actions
 * Alert rules can also send notifications - SMS/ Email / Push / Voice
+* The retention period of the Log Analytics data needs to be set at the workspace setting. The retention period at the service level Diagnostic Setting is for the Storage Account
 
 ## Azure Advisor
 
@@ -873,7 +898,29 @@ Incremental | An incremental backup stores only the blocks of data that changed 
 
 ## Azure SQL
 
-* Two pricing models - DTU based and vCore based
+* Two pricing models - DTU (Database Transaction Unit) based and vCore based (provides more control over hardware specifications)
+* Change in DTU tier causes existing connections to be dropped
+* DTU Service tiers
+  * Basic - Backup retention 7 days
+  * Standard - Backup retention 35 days
+  * Premium - Low latency, backup retention 35 days
+* Long term retention feature can be used for longer retention
+* In the vCores based medel, the serverless tier may have a warmup delay after a period of inactivity
+* Two types of column encryption
+  * **Deterministic encryption** - Same encrypted value is produced for a given input text value. Less secured. But allows equality joins, point lookups, grouping, indexes etc.
+  * **Randomised encryption** - More secured. But it prevents searching, grouping, indexing the encrypted fields
+* If a field is masked, non privileged users will see the data masked
+* Azure SQL Managed Instance supports only vCore based pricing model
+* Audit log can be stored to an Azure Storage account, a Log Analytics workspace, or Event hubs
+* In the event of a disaster,
+  * either, a point in time restore is done from a backup
+  * or, if a replication is already setup, a failover to the secondary can be done. The primary will then become the read-only secondary
+* Auto-failover group can be created to do auto failover to secondary DB when the primary DB fails
+Recovery method	| RTO	| RPO
+--------------- | --- | ---
+Geo-restore from geo-replicated backups	| 12 h | 1 h
+Auto-failover groups | 1 h | 5 s
+Manual database failover | 30 s | 5 s
 
 ## Azure Cosmos DB
 
@@ -883,6 +930,8 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * Cassandra
   * Azure Table
   * Gremlin (graph)
+* Charged based on RU (Request Unit)
+* Multi-region read and write can be enabled
 
 ## Azure Kubernetes
 
@@ -917,6 +966,38 @@ Incremental | An incremental backup stores only the blocks of data that changed 
 * Provides data in-built data connectors with queries, workbooks etc. that collect data into Log Analytics workspace
 * Provides in-built rules and also allows creating custom rules that execute periodically and when query results satisfy conditions, incidents are created
 * Security events from Azure or non-Azure windows Virtual Machines can be streamed to Azure Sentinel and security inidents can also be created using rules
+
+## Azure File Sync
+
+* Azure File Sync service can be used to sync files from Azure File Shares on to the on-premise file servers and vice versa. This will provide faster access to the files from on-premise services
+* Azure File Sync requires the installation of an agent in the on premise server and registration to the Azure File Sync service instance
+
+## Azure Batch
+
+* Azure Batch creates and manages a pool of compute nodes (virtual machines), installs the applications to run, and schedules jobs to run on the nodes
+* A job is meant to run thousands or millions of tasks submitted by the application or client
+* The task code is downloaded from the Azure Storage account
+* The command to execute in the task is specified during the task creation
+* The inputs and outputs are stored in the Azure storage
+
+## Network Watcher
+
+* Tools
+  * **IP flow verify** - Detecting traffic filtering problems - Used to detect if a specific type of packet is allowed or denied given the network security group rules in place
+  * **Next hop** - Detecting virtual machine routing problems
+  * **Connection troubleshoot** - Diagnose connectivity
+  * **VPN connectivity**
+  * **Packet capture**
+  * **Network Security Group logging** - Output in JSON format
+  * **Traffic analysis**
+
+## Azure Cache for Redis
+
+* Pricings
+  * Basic - Single node cache
+  * Standard - 2 node cache. 99.9% SLA
+  * Premium - Powerful, high-throughput hardware
+* Keys that have a time to live set are eligible for evicion
 
 ## Script
 
