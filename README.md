@@ -419,7 +419,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Backend pools - Pooling all backend VMs or scale set
   * Health probes
   * Load balancing rules
-  * Inbound NAT rules - Routing rules to individual VMs
+  * Inbound NAT rules - Routing rules to individual VMs (It can be used to RDP to individual VMs)
 
 ![Choosing Load Balancer](load-balancing-decision-tree.png)
 
@@ -884,6 +884,17 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * When a planned failover is triggered, source VMs are shut down to ensure no data loss
   * An unplanned failover can be triggered, if the primary site is not accessible
   * A test failover can be triggered to test the setup. Once the test is successful, Cleanup test failover action can be triggered to delete the test VMs
+* A cache storage account is created in the source region. All changes to the source virtual machine are first written to the cache storage and then replicated to the target storage
+* The replication of data from the source virtual machine is based on a replication policy. The default replication policy has the following definitions
+  * Recovery points are kept for a duration of 24 hours
+  * An App-consistent snapshot is created every 4 hours (Configurable to every hour)
+  * There is a crash consistent snapshot taken every 5 minutes
+  * Recovery points are then created from every snapshot
+* Crash consistent snapshots 
+  * This consists of data on the disk and not the data in memory.
+  * This does not guarantee data consistency for the operating system or for the applications on the virtual machine
+* App consistent snapshots
+  * This contains all data from the crash consistent snapshot + data in memory + transactions in progress
 
 ## Azure Migrate
 
