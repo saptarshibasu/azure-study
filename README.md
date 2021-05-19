@@ -301,6 +301,7 @@ Typical customer scenarios | Data replication, database failover, and other scen
   * An Azure virtual machine scale set can automatically increase or decrease the number of VM instances that run the application
   * For additional availability, Availability Zones can be used to automatically distribute VM instances in a scale set within a single datacenter or across multiple datacenters
   * With scale sets, all VM instances are created from the same base OS image and configuration
+  * Auto scaling conditions can also be based on other resources such as messages processes by Service Bus etc.
 * Custom Data
   * To inject a script or other metadata into a Microsoft Azure virtual machine at provisioning time, custom data is used. Custom data is executed only during the first boot
   * If the script exceeds the total VM provisioning time allowance of 40 mins, the VM Create will fail. Note, if the script fails to execute, or errors during executing, it is not deemed a fatal provisioning failure
@@ -386,6 +387,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Enable Managed Service Identity on virtual machine
   * On the cosmos db IAM, assign Account Contributor role to the Virtual Machine (VM is visible only if the system assigned identity is enabled)
   * Application on Virtual Machine gets access token from the local service `http://169.254.169.254/metadata/identity/oauth2/token`, uses the acess token to get the access keys of the db, and then uses the access keys to access the db
+* Service Principals - Azure AD applications are created to represent the application. A service principal is then created under the app. If the app needs access to Azure resources in a different tenant, then a service principal for each tenant needs to be associated with the Azure AD app. 
 
 ## Azure Bastion
 
@@ -460,6 +462,9 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * App services
 * Azure Application Gateway can be configured with an Internet-facing VIP or with an internal endpoint that isn't exposed to the Internet. An internal endpoint uses a private IP address for the frontend, which is also known as an internal load balancer (ILB) endpoint
 * There are two primary methods of routing traffic, path-based routing and multiple site hosting
+* For multiple site hosting, the CNAME record with the domain registrar for both domain names need to point to the domain name of the application gateway
+* Web Application Firewall (WAF) is applicable for both Application Gateway and Front Door
+* WAF Policy can be used to create custom policies and attached to Application Gateway or Front Door instances
 
 ## Azure Front Door
 
@@ -471,6 +476,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * With an Application Gateway behind Front Door, one can achieve 100% TLS/SSL offload and route only HTTP requests within their virtual network (VNET)
   * Front Door and Application Gateway both support session affinity. While Front Door can direct subsequent traffic from a user session to the same cluster or backend in a given region, Application Gateway can direct affinitize the traffic to the same server within the cluster
 * Azure Front Door needs a public VIP or a publicly available DNS name to route the traffic to
+* Azure front door routes traffic to the backend pool that has the least latency
 
 ## Traffic Manager
 
