@@ -28,6 +28,8 @@
 
 [Azure Storage](#azure-storage)
 
+[Azure App Service](#azure-app-service)
+
 [ARM Template](#arm-template)
 
 [Azure Event Hub](#azure-event-hub)
@@ -59,8 +61,6 @@
 [Azure File Sync](#azure-file-sync)
 
 [Azure Batch](#azure-batch)
-
-[Azure App Service](#azure-app-service)
 
 [Network Watcher](#network-watcher)
 
@@ -701,11 +701,16 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * DevOps support
 * Scale up or out - manually or automatically
 * App Service is ISO, SOC, and PCI compliant
-
-## Azure Function
-
-* Large, long-running functions can cause unexpected timeout issues
-* A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
+* App Service backup and restore feature restrictions:
+  * App Service plan must be in the Standard, Premium or Isolated tier
+  * Azure storage account and container in the same subscription as the app need to be created
+  * Backups can be up to 10 GB of app and database content
+  * Backups of TLS enabled Azure Database for MySQL is not supported
+  * Backups of TLS enabled Azure Database for PostgreSQL is not supported
+  * A firewall enabled storage account as the destination is not supported
+* Azure Function
+  * Large, long-running functions can cause unexpected timeout issues
+  * A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
 
 ## ARM Template
 
@@ -1021,16 +1026,6 @@ Manual database failover | 30 s | 5 s
 * The task code is downloaded from the Azure Storage account
 * The command to execute in the task is specified during the task creation
 * The inputs and outputs are stored in the Azure storage
-
-## Azure App Service
-
-* App Service backup and restore feature restrictions:
-  * App Service plan must be in the Standard, Premium or Isolated tier
-  * Azure storage account and container in the same subscription as the app need to be created
-  * Backups can be up to 10 GB of app and database content
-  * Backups of TLS enabled Azure Database for MySQL is not supported
-  * Backups of TLS enabled Azure Database for PostgreSQL is not supported
-  * A firewall enabled storage account as the destination is not supported
 
 ## Network Watcher
 
