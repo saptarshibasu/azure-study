@@ -81,6 +81,8 @@ Contributor | Grants full access to manage all resources, but does not allow you
 Owner | Grants full access to manage all resources, including the ability to assign roles in Azure RBAC
 Reader | View all resources, but does not allow you to make any changes
 User Access Administrator | Lets you manage user access to Azure resources
+Password Administrator | Allows passwords to be reset for non-admin accounts and helpdesk admins
+User Administrator | Allows management of all aspects of users, groups and admin password resets
 
 * RBAC roles can be assigned to users or groups at the subscription, resource group, or resource level. E.g. if at a resource group level, a user is assigned the contributor role, the user will be able to manage all resources within the resource group
 * Resource Locks
@@ -395,6 +397,9 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Microsoft Authenticator App
   * SMS
   * Voice Call
+* To add a custom domain, the following records need to be added to the registrar
+  * recordType = TXT, alias, destination, ttl
+  * recordType = MX, alias, destination, ttl, priority
 
 ## Azure Bastion
 
@@ -712,6 +717,10 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * Azure Function
   * Large, long-running functions can cause unexpected timeout issues
   * A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
+* Pricing tiers
+  * Shared compute: Free and Shared, the two base tiers, runs an app on the same Azure VM as other App Service apps, including apps of other customers. These tiers allocate CPU quotas to each app that runs on the shared resources, and the resources cannot scale out.
+  * Dedicated compute: The Basic, Standard, Premium, PremiumV2, and PremiumV3 tiers run apps on dedicated Azure VMs. Only apps in the same App Service plan share the same compute resources. The higher the tier, the more VM instances are available to you for scale-out.
+  * Isolated: This tier runs dedicated Azure VMs on dedicated Azure Virtual Networks. It provides network isolation on top of compute isolation to your apps. It provides the maximum scale-out capabilities.
 
 ## ARM Template
 
@@ -929,6 +938,7 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * Data disk count 16 or less
   * Linux Generation 2 VMs aren't supported
   * Shared VHD & FC Disk not supported
+* Recovery Service Vault has to be in the same region as the VMs
 
 ## Azure Migrate
 
