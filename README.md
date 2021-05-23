@@ -60,6 +60,8 @@
 
 [Azure Batch](#azure-batch)
 
+[Azure App Service](#azure-app-service)
+
 [Network Watcher](#network-watcher)
 
 [Azure Cache for Redis](#azure-cache-for-redis)
@@ -387,7 +389,11 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Enable Managed Service Identity on virtual machine
   * On the cosmos db IAM, assign Account Contributor role to the Virtual Machine (VM is visible only if the system assigned identity is enabled)
   * Application on Virtual Machine gets access token from the local service `http://169.254.169.254/metadata/identity/oauth2/token`, uses the acess token to get the access keys of the db, and then uses the access keys to access the db
-* Service Principals - Azure AD applications are created to represent the application. A service principal is then created under the app. If the app needs access to Azure resources in a different tenant, then a service principal for each tenant needs to be associated with the Azure AD app. 
+* Service Principals - Azure AD applications are created to represent the application. A service principal is then created under the app. If the app needs access to Azure resources in a different tenant, then a service principal for each tenant needs to be associated with the Azure AD app
+* 3 authentication methods that can be used for both MFA and self service password reset:
+  * Microsoft Authenticator App
+  * SMS
+  * Voice Call
 
 ## Azure Bastion
 
@@ -901,6 +907,16 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * This does not guarantee data consistency for the operating system or for the applications on the virtual machine
 * App consistent snapshots
   * This contains all data from the crash consistent snapshot + data in memory + transactions in progress
+* Site Recovery limitations
+  * BitLocker not supported
+  * Supported OS disk size upto
+    * 2048 GB for generation 1 VM
+    * 300 GB for generation 2 VM
+  * Supported data disk VHD size upto 4095 GB
+  * OS disk count 1
+  * Data disk count 16 or less
+  * Linux Generation 2 VMs aren't supported
+  * Shared VHD & FC Disk not supported
 
 ## Azure Migrate
 
@@ -933,11 +949,20 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * either, a point in time restore is done from a backup
   * or, if a replication is already setup, a failover to the secondary can be done. The primary will then become the read-only secondary
 * Auto-failover group can be created to do auto failover to secondary DB when the primary DB fails
+
 Recovery method	| RTO	| RPO
 --------------- | --- | ---
 Geo-restore from geo-replicated backups	| 12 h | 1 h
 Auto-failover groups | 1 h | 5 s
 Manual database failover | 30 s | 5 s
+
+* Databases in an elastic pool are on a single server. A DB can move to a different pool, if the pool is on the same server as the DB
+* Automated Backup v2 automatically configures Managed Backup to Microsoft Azure for all existing and new databases on an Azure VM running SQL Server 2016 or later Standard, Enterprise, or Developer editions. This enables you to configure regular database backups that utilize durable **Azure blob storage**
+* In a failover group, 
+  * the secondary server must be in a different region than the primary region
+  * if a single DB is added to a primary server, a secondary DB will be automatically created in the secondary server
+  * If a DB pool is added to the primary server, a pool with the same name has to be present in the secondary region and the DBs will be created automartically in the secondary server
+  * If a secondary DB is already present in the secondary server, that geo-replication link is inherited by the group
 
 ## Azure Cosmos DB
 
@@ -996,6 +1021,16 @@ Manual database failover | 30 s | 5 s
 * The task code is downloaded from the Azure Storage account
 * The command to execute in the task is specified during the task creation
 * The inputs and outputs are stored in the Azure storage
+
+## Azure App Service
+
+* App Service backup and restore feature restrictions:
+  * App Service plan must be in the Standard, Premium or Isolated tier
+  * Azure storage account and container in the same subscription as the app need to be created
+  * Backups can be up to 10 GB of app and database content
+  * Backups of TLS enabled Azure Database for MySQL is not supported
+  * Backups of TLS enabled Azure Database for PostgreSQL is not supported
+  * A firewall enabled storage account as the destination is not supported
 
 ## Network Watcher
 
