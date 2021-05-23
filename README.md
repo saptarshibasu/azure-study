@@ -330,6 +330,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * Any client running on a VM can acquire an access token by making a REST call to the VM at the endpoint: `http://169.254.169.254/metadata/identity/oauth2/token`. The token is based on the managed identity service principal and suitable for use as a bearer token in service-to-service calls requiring client credentials
 * When a disk is attached to a VM, it remains in a raw disk until it is formatted. To accomplish this, a PowerShell script needs to be deployed to Azure VM scale set instances via the Custom Script extension. The script will be first stored in an Azure Storage container. At the time of installation of Custom Script extension, the script is retrieved from the Azure Storage container
 * Accelerated Networking is by default enabled. It reduces latency be removing an additional hop over the virtual switch
+* The performance diagnostics tool helps you troubleshoot performance issues that can affect a Windows or Linux virtual machine (VM). Supported troubleshooting scenarios include quick checks on known issues and best practices, and complex problems that involve slow VM performance or high usage of CPU, disk space, or memory
 
 ## Azure AD
 
@@ -862,6 +863,11 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * Action groups and associated actions
 * Alert rules can also send notifications - SMS/ Email / Push / Voice
 * The retention period of the Log Analytics data needs to be set at the workspace setting. The retention period at the service level Diagnostic Setting is for the Storage Account
+* Log Analytics agent and / or Azure Diagnostics Extension can be used to collect monitoring data from the guest operating system of virtual machines. Key differences are:
+  * Azure Diagnostics Extension can be used only with Azure virtual machines. The Log Analytics agent can be used with virtual machines in Azure, other clouds, and on-premises
+  * Azure Diagnostics extension sends data to Azure Storage, Azure Monitor Metrics (Windows only) and Event Hubs. The Log Analytics agent collects data to Azure Monitor Logs
+  * The Log Analytics agent is required for solutions, VM insights, and other services such as Azure Security Center
+* Azure Diagnostics Extension - Windows diagnostics extension (WAD), Linux Diagnostic Extension (LAD) 4.0
 
 ## Azure Advisor
 
@@ -885,6 +891,7 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * Back up Azure VMs directly. Azure Backup installs a backup extension to the Azure VM agent that's running on the VM. This extension backs up the entire VM
   * Back up specific files and folders on the Azure VM by running the MARS agent
   * Back up Azure VMs to the MABS that's running in Azure, and then the MABS can be backed up to a Recovery Services vault
+* For Azure Backup to access the storage account, the firewall section must enable the "Allow trusted Microsoft services to access this storage account"
 
 Backup type | Details | Usage
 ----------- | ------- | -----
