@@ -70,9 +70,14 @@
 
 ## Basics
 
-* VM Availability: https://azure.microsoft.com/en-gb/support/legal/sla/virtual-machines/v1_9/
-* Azure Enterprise (https://ea.azure.com) -> Departments (Optional) -> Accounts (https://account.azure.com) -> Subscriptions (https://portal.azure.com) -> Resource Groups -> Resources
-* EA Breakdown - Enterprise Admin, Department Admin, Account Owner, Service Admin
+VM Details | Availability
+---------- | ------------
+Single Instance Virtual Machine using Standard HDD Managed Disks for Operating System Disks and Data Disks | 95 %
+Single Instance Virtual Machine using Standard SSD Managed Disks for Operating System Disk and Data Disks | 99.5 %
+Single Instance Virtual Machine using Premium SSD or Ultra Disk for all Operating System Disks and Data Disks | 99.9 %
+Two or more instances deployed in the same Availability Set or in the same Dedicated Host Group | 99.95 %
+Two or more instances deployed across two or more Availability Zones in the same Azure region | 99.99 %
+
 * All Azure resource types have a scope that defines the level that resource names must be unique. A resource must have a unique name within its scope. Most resources have either resource group or global scope - https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
 
 Common Built-in RBAC Roles | Description
@@ -84,7 +89,7 @@ User Access Administrator | Lets you manage user access to Azure resources
 Password Administrator | Allows passwords to be reset for non-admin accounts and helpdesk admins
 User Administrator | Allows management of all aspects of users, groups and admin password resets
 
-* RBAC roles can be assigned to users or groups at the subscription, resource group, or resource level. E.g. if at a resource group level, a user is assigned the contributor role, the user will be able to manage all resources within the resource group
+* RBAC roles can be assigned to users or groups at the subscription, resource group, or resource level (IAM blade). E.g. if at a resource group level, a user is assigned the contributor role, the user will be able to manage all resources within the resource group
 * Resource Locks
   * **CanNotDelete** - Authorized users can read or modify the resource, but can't delete the resource
   * **ReadOnly** - Authorized users can only read a resource, but can't delete or update the resource
@@ -131,13 +136,6 @@ User Administrator | Allows management of all aspects of users, groups and admin
   * Azure resources to communicate outbound to the internet
   * Azure resources to communicate outbound to the Azure public facing services
 * A resource without a public IP assigned can communicate outbound. Its address is network address translated by Azure to an unpredictable public address, by default. However, at scale, a NAT Gateway is recommended to avoid TCP timeout error due to unavailability of port on Azure assigned public IP
-* Public IP address can be assigned to:
-  * Virtual Machine NIC
-  * Public facing Load Balancers
-  * VPN Gateways
-  * Application Gateways
-  * Azure Firewall
-  * Bastion Host
 * Public IP Address SKUs
   * **Basic SKU**
     * No longer default
@@ -211,7 +209,6 @@ User Administrator | Allows management of all aspects of users, groups and admin
 * Each virtual network, including a peered virtual network, can have only one virtual network gateway
 * A VPN gateway can be of two types - Vpn and ExpressRoute
 * The throughput, SLA, feature etc. of the VPN gateway is determined by the SKU of the gateway
-* The maximum aggregate throughput benchmark - 10 gbps
 
 ### Peering
 
@@ -292,6 +289,7 @@ Typical customer scenarios | Data replication, database failover, and other scen
   * **Resolution of on-premise names from Azure** - Cusomer managed DNS servers
   * **Resolution of Azure names from on-premise computers** - Customer managed DNS servers forwarding queries to Azure for name resolution
 * For the custom DNS changes to take effect, the VMs need to be restarted
+* To add a custom domain: TXT and MX records need to be added at the registrar. TXT record is added with alias, destination and TTL. MX record is added with alias, destination, TTL, and priority
 
 ## Virtual Machine
 
@@ -397,9 +395,6 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Microsoft Authenticator App
   * SMS
   * Voice Call
-* To add a custom domain, the following records need to be added to the registrar
-  * recordType = TXT, alias, destination, ttl
-  * recordType = MX, alias, destination, ttl, priority
 
 ## Azure Bastion
 
