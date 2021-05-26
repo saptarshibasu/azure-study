@@ -66,6 +66,12 @@
 
 [Azure Cache for Redis](#azure-cache-for-redis)
 
+[Azure Relay](#azure-relay)
+
+[SendGrid](#sendgrid)
+
+[Azure Notification Hub](#azure-notification-hub)
+
 [Script](#script)
 
 ## Basics
@@ -709,13 +715,32 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Backups of TLS enabled Azure Database for MySQL is not supported
   * Backups of TLS enabled Azure Database for PostgreSQL is not supported
   * A firewall enabled storage account as the destination is not supported
+
+Pricing Tier | Description
+------------ | -----------
+Free - F1 | Shared Cores (60 CPU minutes / day). 1 GB RAM. 1 GB storage. Used only for development and testing purpose
+Shared - D1 | Shared Cores (240 CPU minutes / day). 1 GB RAM. 1 GB storage. Used only for development and testing purpose
+Basic - B1 | 1 Core. 1.75 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates
+Basic - B2 | 2 Cores. 3.50 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates
+Basic - B3 | 4 Cores. 7 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates
+Standard - S1 | 1 Core. 1.75 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale
+Standard - S2 | 2 Cores. 3.50 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale
+Standard - S3 | 4 Cores. 7 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale
+Premium v2 - P1v2 | 1 Core. 3.50 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series
+Premium v2 - P2v2 | 2 Cores. 7 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series
+Premium v2 - P3v2 | 4 Cores. 14 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series
+Premium v3 - P1v3 | 2 Cores. 8 GB RAM. 250 GB storage. VNet connectivity. Container support
+Premium v3 - P2v3 | 4 Cores. 16 GB RAM. 250 GB storage. VNet connectivity. Container support
+Premium v3 - P3v3 | 8 Cores. 32 GB RAM. 250 GB storage. VNet connectivity. Container support
+Isolated - l1 | 1 Core. 3.50 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage
+Isolated - l2 | 2 Cores. 7 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage
+Isolated - l3 | 4 Cores. 14 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage
+
+
 * Azure Function
   * Large, long-running functions can cause unexpected timeout issues
   * A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
-* Pricing tiers
-  * Shared compute: Free and Shared, the two base tiers, runs an app on the same Azure VM as other App Service apps, including apps of other customers. These tiers allocate CPU quotas to each app that runs on the shared resources, and the resources cannot scale out.
-  * Dedicated compute: The Basic, Standard, Premium, PremiumV2, and PremiumV3 tiers run apps on dedicated Azure VMs. Only apps in the same App Service plan share the same compute resources. The higher the tier, the more VM instances are available to you for scale-out.
-  * Isolated: This tier runs dedicated Azure VMs on dedicated Azure Virtual Networks. It provides network isolation on top of compute isolation to your apps. It provides the maximum scale-out capabilities.
+
 
 ## ARM Template
 
@@ -889,12 +914,13 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
 * Azure Backup stores backed-up data in vaults - Recovery Services vaults and Backup vaults. A vault is an online-storage entity in Azure that's used to hold data, such as backup copies, recovery points, and backup policies
 * Multiple virtual machines can be backed up by creating a backup policy on the recovery services vault and applying that policy to the desired virtual machines
 * Back up of on-premises machines:
-  * Back up on-premises Windows machines directly to Azure by using the Azure Backup Microsoft Azure Recovery Services (MARS) agent. Linux machines aren't supported
+  * Back up on-premises Windows machines directly to Azure by using the Azure Backup Microsoft Azure Recovery Services (MARS) agent. Linux machines aren't supported (use MABS for for Linux)
   * Back up on-premises machines to a backup server (agentless) - either System Center Data Protection Manager (DPM) or Microsoft Azure Backup Server (MABS). The backup server is then backed up to a Recovery Services vault in Azure
 * Back up of Azure VMs:
   * Back up Azure VMs directly. Azure Backup installs a backup extension to the Azure VM agent that's running on the VM. This extension backs up the entire VM
   * Back up specific files and folders on the Azure VM by running the MARS agent
   * Back up Azure VMs to the MABS that's running in Azure, and then the MABS can be backed up to a Recovery Services vault
+* DPM allows you to back up data for long-term storage on tape. MABS doesn't provide this functionality
 * For Azure Backup to access the storage account, the firewall section must enable the "Allow trusted Microsoft services to access this storage account"
 
 Backup type | Details | Usage
@@ -1057,6 +1083,18 @@ Manual database failover | 30 s | 5 s
   * Standard - 2 node cache. 99.9% SLA
   * Premium - Powerful, high-throughput hardware
 * Keys that have a time to live set are eligible for evicion
+
+## Azure Relay
+
+* The Azure Relay service enables you to securely expose services that run in your corporate network to the public cloud. You can do so without opening a port on your firewall, or making intrusive changes to your corporate network infrastructure
+
+## SendGrid
+
+* SendGrid is a cloud-based email service that provides reliable transactional email delivery, scalability, and real-time analytics along with flexible APIs that make custom integration easy
+
+## Azure Notification Hub
+
+* Azure Notification Hubs provide an easy-to-use and scaled-out push engine that enables you to send notifications to any platform (iOS, Android, Windows, etc.) from any back-end (cloud or on-premises)
 
 ## Script
 
