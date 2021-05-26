@@ -72,6 +72,8 @@
 
 [Azure Notification Hub](#azure-notification-hub)
 
+[Azure Key Vault](#azure-key-vault)
+
 [Script](#script)
 
 ## Basics
@@ -746,7 +748,7 @@ Isolated - l3 | 4 Cores. 14 GB RAM. 1 TB storage. Mission critical workload in v
 * Azure Function
   * Large, long-running functions can cause unexpected timeout issues
   * A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
-
+* Timeout - 10 mins max (Consumption plan), Unlimited max (Premium plan)
 * Azure function availability SLA for both Consumption & Premium plan - 99.95 %
 
 ## ARM Template
@@ -782,6 +784,8 @@ Isolated - l3 | 4 Cores. 14 GB RAM. 1 TB storage. Mission critical workload in v
     * `Microsoft.Storage/storageAccounts`
     * `Microsoft.Network/networkInterfaces`
 * If a parameter doesn't have a default value and isn't specified in the parameter file, the template execution will prompt to provide a value
+* string or object parameters can be marked as secure. The value of a secure parameter isn't saved to the deployment history and isn't logged
+* Instead of putting a secure value (like a password) directly in template or parameter file, the value can be retrieved from an Azure Key Vault during a deployment by referencing the key vault and secret in the parameter file
 
 ## Azure Event Hub
 
@@ -1125,6 +1129,23 @@ Manual database failover | 30 s | 5 s
 ## Azure Notification Hub
 
 * Azure Notification Hubs provide an easy-to-use and scaled-out push engine that enables you to send notifications to any platform (iOS, Android, Windows, etc.) from any back-end (cloud or on-premises)
+
+## Azure Key Vault
+
+REST API methods | Purpose
+---------------- | -------
+POST | Checks that the vault name is valid and is not already in use
+PUT | Create or update a key vault in the specified subscription
+DELETE | Deletes the specified Azure key vault
+GET | Gets the specified Azure key vault
+GET | Gets the deleted Azure key vault
+GET | The List operation gets information about the vaults associated with the subscription
+GET | The List operation gets information about the vaults associated with the subscription and within the specified resource group
+GET | The List operation gets information about the vaults associated with the subscription
+GET | Gets information about the deleted vaults in a subscription
+POST | Permanently deletes the specified vault. aka Purges the deleted Azure key vault
+PATCH | Update a key vault in the specified subscription
+PUT | Update access policies in a key vault in the specified subscription
 
 ## Script
 
