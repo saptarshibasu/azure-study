@@ -435,6 +435,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Health probes
   * Load balancing rules
   * Inbound NAT rules - Routing rules to individual VMs (It can be used to RDP to individual VMs)
+  * Availability SLA - 99.99 %
 
 ![Choosing Load Balancer](load-balancing-decision-tree.png)
 
@@ -478,6 +479,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * For multiple site hosting, the CNAME record with the domain registrar for both domain names need to point to the domain name of the application gateway
 * Web Application Firewall (WAF) is applicable for both Application Gateway and Front Door
 * WAF Policy can be used to create custom policies and attached to Application Gateway or Front Door instances
+* Availability SLA - 99.95 %
 
 ## Azure Front Door
 
@@ -490,6 +492,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Front Door and Application Gateway both support session affinity. While Front Door can direct subsequent traffic from a user session to the same cluster or backend in a given region, Application Gateway can direct affinitize the traffic to the same server within the cluster
 * Azure Front Door needs a public VIP or a publicly available DNS name to route the traffic to
 * Azure front door routes traffic to the backend pool that has the least latency
+* Availability SLA - 99.99 %
 
 ## Traffic Manager
 
@@ -513,6 +516,7 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * **Azure endpoints** are used for services hosted in Azure
   * **External endpoints** are used for IPv4/IPv6 addresses, FQDNs, or for services hosted outside Azure that can either be on-premises or with a different hosting provider
   * **Nested endpoints** are used to combine Traffic Manager profiles to create more flexible traffic-routing schemes to support the needs of larger, more complex deployments
+* Availability SLA - 99.99 %
 
 ## Security Center
 
@@ -718,29 +722,32 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 
 Pricing Tier | Description
 ------------ | -----------
-Free - F1 | Shared Cores (60 CPU minutes / day). 1 GB RAM. 1 GB storage. Used only for development and testing purpose
-Shared - D1 | Shared Cores (240 CPU minutes / day). 1 GB RAM. 1 GB storage. Used only for development and testing purpose
-Basic - B1 | 1 Core. 1.75 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates
-Basic - B2 | 2 Cores. 3.50 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates
-Basic - B3 | 4 Cores. 7 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates
-Standard - S1 | 1 Core. 1.75 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale
-Standard - S2 | 2 Cores. 3.50 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale
-Standard - S3 | 4 Cores. 7 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale
-Premium v2 - P1v2 | 1 Core. 3.50 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series
-Premium v2 - P2v2 | 2 Cores. 7 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series
-Premium v2 - P3v2 | 4 Cores. 14 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series
-Premium v3 - P1v3 | 2 Cores. 8 GB RAM. 250 GB storage. VNet connectivity. Container support
-Premium v3 - P2v3 | 4 Cores. 16 GB RAM. 250 GB storage. VNet connectivity. Container support
-Premium v3 - P3v3 | 8 Cores. 32 GB RAM. 250 GB storage. VNet connectivity. Container support
-Isolated - l1 | 1 Core. 3.50 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage
-Isolated - l2 | 2 Cores. 7 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage
-Isolated - l3 | 4 Cores. 14 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage
+Free - F1 | Shared Cores (60 CPU minutes / day). 1 GB RAM. 1 GB storage. Used only for development and testing purpose. 10 apps per plan. 1 instance max.
+Shared - D1 | Shared Cores (240 CPU minutes / day). 1 GB RAM. 1 GB storage. Used only for development and testing purpose. Custom domain supported. 100 apps per plan. 1 instance max.
+Basic - B1 | 1 Core. 1.75 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates. unlimited apps per plan. 3 instances max
+Basic - B2 | 2 Cores. 3.50 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates. unlimited apps per plan. 3 instances max
+Basic - B3 | 4 Cores. 7 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates. unlimited apps per plan. 3 instances max
+Standard - S1 | 1 Core. 1.75 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5
+Standard - S2 | 2 Cores. 3.50 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5
+Standard - S3 | 4 Cores. 7 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5
+Premium v2 - P1v2 | 1 Core. 3.50 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
+Premium v2 - P2v2 | 2 Cores. 7 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
+Premium v2 - P3v2 | 4 Cores. 14 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
+Premium v3 - P1v3 | 2 Cores. 8 GB RAM. 250 GB storage. VNet connectivity. Container support. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
+Premium v3 - P2v3 | 4 Cores. 16 GB RAM. 250 GB storage. VNet connectivity. Container support. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
+Premium v3 - P3v3 | 8 Cores. 32 GB RAM. 250 GB storage. VNet connectivity. Container support. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
+Isolated - l1 | 1 Core. 3.50 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage. 100 instances max
+Isolated - l2 | 2 Cores. 7 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage. 100 instances max
+Isolated - l3 | 4 Cores. 14 GB RAM. 1 TB storage. Mission critical workload in virtual network. Can scale upto 100 instances. Private dedicated environment called App Service Environment. Dv2 series VM with SSD storage. 100 instances max
+
+* App Service availability SLA from Basic - 99.95 %
 
 
 * Azure Function
   * Large, long-running functions can cause unexpected timeout issues
   * A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
 
+* Azure function availability SLA for both Consumption & Premium plan - 99.95 %
 
 ## ARM Template
 
@@ -982,7 +989,8 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * Premium - Low latency, backup retention 35 days
 * Long term retention feature can be used for longer retention
 * In the vCores based medel, the serverless tier may have a warmup delay after a period of inactivity
-* Two types of column encryption
+* **Always Encrypted** is a feature designed to protect sensitive data, such as credit card numbers or national identification numbers (for example, U.S. social security numbers), stored in Azure SQL Database or SQL Server databases
+* Always Encrypted supports two types of column encryption
   * **Deterministic encryption** - Same encrypted value is produced for a given input text value. Less secured. But allows equality joins, point lookups, grouping, indexes etc.
   * **Randomised encryption** - More secured. But it prevents searching, grouping, indexing the encrypted fields
 * If a field is masked, non privileged users will see the data masked
@@ -992,6 +1000,7 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * either, a point in time restore is done from a backup
   * or, if a replication is already setup, a failover to the secondary can be done. The primary will then become the read-only secondary
 * Auto-failover group can be created to do auto failover to secondary DB when the primary DB fails
+* **Transparent Data Encryption (TDE)** encrypts SQL Server, Azure SQL Database, and Azure Synapse Analytics data files. This encryption is known as encrypting data at rest
 
 Recovery method	| RTO	| RPO
 --------------- | --- | ---
@@ -1020,8 +1029,20 @@ Manual database failover | 30 s | 5 s
 
 ## Azure Kubernetes
 
-* Check Pods
+* Create kubernetes cluster
+`az aks create --resource-group myResourceGroup --name myAKSCluster --node-count 1 --enable-addons monitoring --generate-ssh-keys`
+
+* Check nodes
+`kubectl get nodes`
+
+* Check pods
 `kubectl get pods`
+
+* Deploy application
+`kubectl apply -f azure-vote.yaml`
+
+* Delete kubernetes cluster
+`az group delete --name myResourceGroup --yes --no-wait`
 
 * Replicate vote-Front
 `kubectl scale --replicas=3 deployment/azure-vote-front`
@@ -1029,8 +1050,17 @@ Manual database failover | 30 s | 5 s
 * Check with below command:
 `kubectl get pods`
 
-* AutoScale Rule
+* AutoScale rule
 `kubectl autoscale deployment azure-vote-front --cpu-percent=50 --min=3 --max=10`
+
+* Create container registry
+`az acr create --resource-group myResourceGroup --name <acrName> --sku Basic`
+
+* List repositories in registry
+`az acr repository list --name <acrName> --output table`
+
+* Show the tags of specififc image
+`az acr repository show-tags --name <acrName> --repository azure-vote-front --output table`
 
 ## Azure Blueprints
 
