@@ -78,14 +78,6 @@
 
 ## Basics
 
-VM Details | Availability
----------- | ------------
-Single Instance Virtual Machine using Standard HDD Managed Disks for Operating System Disks and Data Disks | 95 %
-Single Instance Virtual Machine using Standard SSD Managed Disks for Operating System Disk and Data Disks | 99.5 %
-Single Instance Virtual Machine using Premium SSD or Ultra Disk for all Operating System Disks and Data Disks | 99.9 %
-Two or more instances deployed in the same Availability Set or in the same Dedicated Host Group | 99.95 %
-Two or more instances deployed across two or more Availability Zones in the same Azure region | 99.99 %
-
 * All Azure resource types have a scope that defines the level that resource names must be unique. A resource must have a unique name within its scope. Most resources have either resource group or global scope - https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming
 
 Common Built-in RBAC Roles | Description
@@ -339,6 +331,14 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * When a disk is attached to a VM, it remains in a raw disk until it is formatted. To accomplish this, a PowerShell script needs to be deployed to Azure VM scale set instances via the Custom Script extension. The script will be first stored in an Azure Storage container. At the time of installation of Custom Script extension, the script is retrieved from the Azure Storage container
 * Accelerated Networking is by default enabled. It reduces latency be removing an additional hop over the virtual switch
 * The performance diagnostics tool helps you troubleshoot performance issues that can affect a Windows or Linux virtual machine (VM). Supported troubleshooting scenarios include quick checks on known issues and best practices, and complex problems that involve slow VM performance or high usage of CPU, disk space, or memory
+
+VM Details | Availability
+---------- | ------------
+Single Instance Virtual Machine using Standard HDD Managed Disks for Operating System Disks and Data Disks | 95 %
+Single Instance Virtual Machine using Standard SSD Managed Disks for Operating System Disk and Data Disks | 99.5 %
+Single Instance Virtual Machine using Premium SSD or Ultra Disk for all Operating System Disks and Data Disks | 99.9 %
+Two or more instances deployed in the same Availability Set or in the same Dedicated Host Group | 99.95 %
+Two or more instances deployed across two or more Availability Zones in the same Azure region | 99.99 %
 
 ## Azure AD
 
