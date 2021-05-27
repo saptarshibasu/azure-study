@@ -704,6 +704,12 @@ Two or more instances deployed across two or more Availability Zones in the same
 * Immutable Blob Storage - Blobs once created cannot be modified or deleted. Two policies
   * **Legal hold** - indefinite hold
   * **Time based retention**
+* A shared access signature (SAS) provides secure delegated access to resources in a storage account. Types of SAS:
+  * User delegation SAS - secured with Azure Active Directory (Azure AD) credentials and applies to blob storage only
+  * Service SAS - secured with the storage account key and delegates access to a resource in only one of the Azure Storage services: Blob storage, Queue storage, Table storage, or Azure Files
+  * Account SAS - secured with the storage account key and delegates access to resources in one or more of the storage services
+* SAS can be created with HTTP or HTTPS access protocols and it can also be restricted to specific IP addressess
+* SAS created with stored access policies can be revoked by deleting the policy
 
 ## Azure App Service
 
