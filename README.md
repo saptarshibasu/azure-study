@@ -610,7 +610,7 @@ Two or more instances deployed across two or more Availability Zones in the same
     * Backed by SSD
   * **Premium page blobs** -
     * foundation of Azure IaaS Disks
-    * Supports only LRS and ZRS
+    * Supports only LRS
     * Backed by SSD
 * Azure storage redundancy types
   * **Locally redundant storage (LRS)** -
@@ -674,19 +674,6 @@ Two or more instances deployed across two or more Availability Zones in the same
 * Azure storage service is designed to embrace a strong consistency model which guarantees that when the Storage service commits a data insert or update operation all further accesses to that data will see the latest update
 * The Azure storage service uses snapshot isolation to allow read operations to happen concurrently with write operations within a single partition. Snapshot isolation guarantees that all reads see a consistent snapshot of the data even while updates are occurring – essentially by returning the last committed values while an update transaction is being processed
 * You can opt to use either optimistic or pessimistic concurrency models to manage access to blobs and containers in the Blob service. If you do not explicitly specify a strategy last writes wins is the default
-* **Optimistic concurrency** for blobs
-  * Retrieve a blob from the storage service, the response includes an HTTP ETag Header value that identifies the current version of the object in the storage service
-  * When you update the blob, include the ETag value you received in step 1 in the If-Match conditional header of the request you send to the service.
-  * The service compares the ETag value in the request with the current ETag value of the blob
-  * If the current ETag value of the blob is a different version than the ETag in the If-Match conditional header in the request, the service returns a 412 error to the client. This indicates to the client that another process has updated the blob since the client retrieved it
-  * If the current ETag value of the blob is the same version as the ETag in the If-Match conditional header in the request, the service performs the requested operation and updates the current ETag value of the blob to show that it has created a new version
-* **Pessimistic concurrency** for blobs
-  * To lock a blob for exclusive use, you can acquire a lease on it
-  * When you acquire a lease, you specify for how long you need the lease: this can be for between 15 to 60 seconds or infinite, which amounts to an exclusive lock
-  * You can renew a finite lease to extend it, and you can release any lease when you are finished with it
-  * The Blob service automatically releases finite leases when they expire.
-  * Leases enable different synchronization strategies to be supported, including exclusive write / shared read, exclusive write / exclusive read and shared write / exclusive read. Where a lease exists the storage service enforces exclusive writes (put, set and delete operations) however ensuring exclusivity for read operations requires the developer to ensure that all client applications use a lease ID and that only one client at a time has a valid lease ID
-  * Read operations that do not include a lease ID result in shared reads.
 * Object replication asynchronously copies block blobs between a source storage account and a destination account
 * Prerequisite of object replication
   * Change Feed enabled on source account
@@ -710,6 +697,9 @@ Two or more instances deployed across two or more Availability Zones in the same
   * Account SAS - secured with the storage account key and delegates access to resources in one or more of the storage services
 * SAS can be created with HTTP or HTTPS access protocols and it can also be restricted to specific IP addressess
 * SAS created with stored access policies can be revoked by deleting the policy
+* Both Standard general-purpose v2 and Premium block blobs support Data Lake Storage, but Standard general-purpose v1 doesn't
+* Standard general-purpose v1 doesn't support ZRS
+* Standard Blob storage (legacy) does not support page blobs
 
 ## Azure App Service
 
@@ -800,6 +790,63 @@ Deployment logging | Both Windows & Linux, only File system, Logs for when you p
 * If a parameter doesn't have a default value and isn't specified in the parameter file, the template execution will prompt to provide a value
 * string or object parameters can be marked as secure. The value of a secure parameter isn't saved to the deployment history and isn't logged
 * Instead of putting a secure value (like a password) directly in template or parameter file, the value can be retrieved from an Azure Key Vault during a deployment by referencing the key vault and secret in the parameter file
+
+```
+{
+  "type": "Microsoft.Compute/virtualMachines",
+  "apiVersion": "2020-06-01",
+  "name": "[parameters('vmName')]",
+  "location": "[parameters('location')]",
+  "dependsOn": [
+    "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+    "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+  ],
+  "properties": {
+    "hardwareProfile": {
+      "vmSize": "[parameters('vmSize')]"
+    },
+    "osProfile": {
+      "computerName": "[parameters('vmName')]",
+      "adminUsername": "[parameters('adminUsername')]",
+      "adminPassword": "[parameters('adminPassword')]"
+    },
+    "storageProfile": {
+      "imageReference": {
+        "publisher": "MicrosoftWindowsServer",
+        "offer": "WindowsServer",
+        "sku": "2019-Datacenter",
+        "version": "latest"
+      },
+      "osDisk": {
+        "createOption": "FromImage",
+        "managedDisk": {
+          "storageAccountType": "StandardSSD_LRS"
+        }
+      },
+      "dataDisks": [
+        {
+          "diskSizeGB": 1023,
+          "lun": 0,
+          "createOption": "Empty"
+        }
+      ]
+    },
+    "networkProfile": {
+      "networkInterfaces": [
+        {
+          "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+        }
+      ]
+    },
+    "diagnosticsProfile": {
+      "bootDiagnostics": {
+        "enabled": true,
+        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
+      }
+    }
+  }
+}
+```
 
 ## Azure Event Hub
 
@@ -902,8 +949,8 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
 * Activity log allows monitoring activities / operations being performed in a subscription or account viz. resource creation, deletion etc.
 * AD Sign-in logs can be fed to Log Analytics workspace using Diagnostics settings (Azure AD P1 / P2 License needed)
 * Other Application Insights feature
-  * Smart Detection - Using machine learning algorithms on the telemetry data sent to Application Insights, it can identify potential performance problems and failure anomaries
-  * Continuous Export - It allows exporting the telemetry data to a storage account account cpntainer
+  * Smart Detection - Using machine learning algorithms on the telemetry data sent to Application Insights, it can identify potential performance problems and failure anomalies
+  * Continuous Export - It allows exporting the telemetry data to a storage account account container
 * Azure monitor allows to create alert rules such that based on a custom Log Analytics query result the following can be invoked
   * Automation Runbook
   * Azure Function
