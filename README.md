@@ -97,6 +97,7 @@ User Administrator | Allows management of all aspects of users, groups and admin
 * Resource Locks when created at the resource group or subscription level, all resources underneath them inherit the lock
 * **RPO** - Recovery Point Objective - How much data can you afford to lose
 * **RTO** - Recovery Time Objective - If an issue occurs and a system goes down, how much time it takes to get things back to normal
+* To restrict access to resources at a granular level use Shared Access Signature (SAS). For e.g. to allow a VM access a queue in Service Bus, enable managed identity on the VM and then from the IAM section of the queue, provide appropriate RBAC roles to the VM. However, if the requirement is to ensure the VM can only publish to queue, but cannot consume from queue, use SAS instead
 
 ## Resource Groups
 
@@ -969,6 +970,7 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
   * Azure Diagnostics extension sends data to Azure Storage, Azure Monitor Metrics (Windows only) and Event Hubs. The Log Analytics agent collects data to Azure Monitor Logs
   * The Log Analytics agent is required for solutions, VM insights, and other services such as Azure Security Center
 * Azure Diagnostics Extension - Windows diagnostics extension (WAD), Linux Diagnostic Extension (LAD) 4.0
+* Azure Monitor Workbooks provide a flexible canvas for data analysis and the creation of rich visual reports within the Azure portal
 
 ## Azure Advisor
 
@@ -1080,6 +1082,8 @@ Manual database failover | 30 s | 5 s
   * if a single DB is added to a primary server, a secondary DB will be automatically created in the secondary server
   * If a DB pool is added to the primary server, a pool with the same name has to be present in the secondary region and the DBs will be created automartically in the secondary server
   * If a secondary DB is already present in the secondary server, that geo-replication link is inherited by the group
+* Azure SQL backups are stored in storage account
+* For two managed instances to participate in a failover group, there must be either ExpressRoute or a gateway configured between the virtual networks of the two managed instances to allow network communication
 
 ## Azure Cosmos DB
 
@@ -1124,6 +1128,13 @@ Manual database failover | 30 s | 5 s
 
 * Show the tags of specififc image
 `az acr repository show-tags --name <acrName> --repository azure-vote-front --output table`
+
+* Dockerfile COPY commands
+```
+COPY test1.txt /temp/
+COPY test1.txt c:/temp/
+```
+Note: "\" won't work
 
 ## Azure Blueprints
 
