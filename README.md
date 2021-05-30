@@ -153,6 +153,9 @@ User Administrator | Allows management of all aspects of users, groups and admin
 * Inbound communication with a Standard SKU IP address fails until a network security group is created and associated explicitly to allow the desired inbound traffic
 * Virtual Network is tied to a specific region and a specific subscription
 * Network Security Group (NSG) can be assigned to VM (NIC) or to Subnet
+* Important ports
+  * SMB - 445
+  * RDP - 3389
 
 ### Hybrid Connectivity
 
@@ -348,9 +351,9 @@ Two or more instances deployed across two or more Availability Zones in the same
 * AADDS - Azure Active Directory Domain Services - Managed domain services without the need to patch and maintain domain controllers
 * Pricing details
   * Free has object limit of 5,00,000. Basic, P1, P2  have no object limit
-  * Free users do not have self service password reset, company branding etc.
-  * P1, P2 exclusive features - Self-service password reset/change/unlock with on-premises write-back, Multi-Factor Authentication
-  * P2 exclusive feature - Identity Protection, Privileged Identity Management (PIM), Access Review, Conditional Access Policies
+  * Basic features - self service password reset, company branding etc.
+  * P1 features - Self-service password reset/change/unlock with on-premises write-back, Multi-Factor Authentication, Conditional Access Policies
+  * P2 feature - Identity Protection, Privileged Identity Management (PIM), Access Review
 * Identity Protection alerts the users and administrators about following risks, optionally enforcess password change etc.
   * Atypical travel
   * Anonymous IP address
@@ -404,6 +407,9 @@ Two or more instances deployed across two or more Availability Zones in the same
   * Microsoft Authenticator App
   * SMS
   * Voice Call
+* Additional authentication methods used only for SSPR:
+  * Security questions
+  * Email
 
 ## Azure Bastion
 
@@ -454,6 +460,7 @@ Two or more instances deployed across two or more Availability Zones in the same
 * Even if all clients are located on-premises or in Azure, both the Azure Application Gateway and the Azure Firewall need to have public IP addresses, so that Microsoft can manage the services
 * In a hub and spoke architecture, Azure Firewall, Application Gateway, and API Management gateway components uasually all go to the hub virtual network
 * Can be used with Kubernetes
+* Stateful service
 
 ## Application Gateway
 
@@ -1045,6 +1052,9 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * **Replicate VMs** - Replicate virtual machines from VMware into Azure storage
   * **Test Migration** - Test virtual machines using a test virtual network. Once test is done, cleanup can be invoked to delete the test VMs
   * **Migrate to Production** - Migrate virtual machines into production using a production virtual network
+* Two types of assessments by using Azure Migrate Server Assessment
+  * Performance-based - Assessment based on collected performance or usage data
+  * As on-premises - Assessment based on on-premises sizing
 
 ## Azure SQL
 
@@ -1084,6 +1094,7 @@ Manual database failover | 30 s | 5 s
   * If a secondary DB is already present in the secondary server, that geo-replication link is inherited by the group
 * Azure SQL backups are stored in storage account
 * For two managed instances to participate in a failover group, there must be either ExpressRoute or a gateway configured between the virtual networks of the two managed instances to allow network communication
+* Microsoft SQL Server Always On availability group on Azure virtual machines requires Internal Load Balancer with Floating IP enabled
 
 ## Azure Cosmos DB
 
@@ -1096,6 +1107,13 @@ Manual database failover | 30 s | 5 s
 * Charged based on RU (Request Unit)
 * Multi-region read and write can be enabled
 * Account > Database > Container
+* Once an account has been created with multiple write regions enabled, following two changes need to be made in the application. Within the ConnectionPolicy, set UseMultipleWriteLocations to true and pass the name of the region where the application is deployed to SetCurrentLocation
+* Azure Cosmos DB offers five well-defined levels. From strongest to weakest, the levels are:
+  * Strong
+  * Bounded staleness
+  * Session - Good for modelling shopping basket
+  * Consistent prefix
+  * Eventual
 
 ## Azure Kubernetes
 
@@ -1155,6 +1173,7 @@ Note: "\" won't work
 * Provides data in-built data connectors with queries, workbooks etc. that collect data into Log Analytics workspace
 * Provides in-built rules and also allows creating custom rules that execute periodically and when query results satisfy conditions, incidents are created
 * Security events from Azure or non-Azure windows Virtual Machines can be streamed to Azure Sentinel and security inidents can also be created using rules
+* Azure Sentinel Responder role can manage incidents (assign, dismiss, etc.)
 
 ## Azure File Sync
 
