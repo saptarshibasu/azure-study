@@ -98,6 +98,7 @@ User Administrator | Allows management of all aspects of users, groups and admin
 * **RPO** - Recovery Point Objective - How much data can you afford to lose
 * **RTO** - Recovery Time Objective - If an issue occurs and a system goes down, how much time it takes to get things back to normal
 * To restrict access to resources at a granular level use Shared Access Signature (SAS). For e.g. to allow a VM access a queue in Service Bus, enable managed identity on the VM and then from the IAM section of the queue, provide appropriate RBAC roles to the VM. However, if the requirement is to ensure the VM can only publish to queue, but cannot consume from queue, use SAS instead
+* Azure Import/Export service is used to securely import large amounts of data to Azure Blob storage and Azure Files by shipping disk drives to an Azure datacenter. This service can also be used to transfer data from Azure Blob storage to disk drives and ship to your on-premises sites
 
 ## Resource Groups
 
@@ -335,6 +336,18 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * When a disk is attached to a VM, it remains in a raw disk until it is formatted. To accomplish this, a PowerShell script needs to be deployed to Azure VM scale set instances via the Custom Script extension. The script will be first stored in an Azure Storage container. At the time of installation of Custom Script extension, the script is retrieved from the Azure Storage container
 * Accelerated Networking is by default enabled. It reduces latency be removing an additional hop over the virtual switch
 * The performance diagnostics tool helps you troubleshoot performance issues that can affect a Windows or Linux virtual machine (VM). Supported troubleshooting scenarios include quick checks on known issues and best practices, and complex problems that involve slow VM performance or high usage of CPU, disk space, or memory
+* Update Management - Update Management in Azure Automation is used to manage operating system updates for Windows and Linux virtual machines in Azure, in on-premises environments, and in other cloud environments
+* Update Management relies on 
+  * Log Analytics agent for Windows or Linux
+  * PowerShell Desired State Configuration (DSC) for Linux
+  * Automation Hybrid Runbook Worker (automatically installed when you enable Update Management on the machine)
+  * Microsoft Update or Windows Server Update Services (WSUS) for Windows machines
+  * Either a private or public update repository for Linux machines 
+* Premium SSD sizes smaller than P30 now offer disk bursting and can burst their IOPS per disk up to 3,500 and their bandwidth up to 170 MB/s. Bursting is automated and operates based on a credit system. Credits are automatically accumulated in a burst bucket when disk traffic is below the provisioned performance target and credits are automatically consumed when traffic bursts beyond the target, up to the max burst limit
+* On scale-out, autoscale runs if any rule is met. On scale-in, autoscale require all rules to be met
+* For premium SSDs, standard SSDs, and standard HDDs: When you disable or delete your key, any VMs with disks using that key will automatically shut down
+* For ultra disks: when you disable or delete a key, any VMs with ultra disks using the key won't automatically shut down
+* All successful scale actions and autoscale failures are logged in Activity Log
 
 VM Details | Availability
 ---------- | ------------
@@ -352,7 +365,7 @@ Two or more instances deployed across two or more Availability Zones in the same
 * Pricing details
   * Free has object limit of 5,00,000. Basic, P1, P2  have no object limit
   * Basic features - self service password reset, company branding etc.
-  * P1 features - Self-service password reset/change/unlock with on-premises write-back, Multi-Factor Authentication, Conditional Access Policies
+  * P1 features - Self-service password reset/change/unlock with on-premises write-back, Multi-Factor Authentication, Conditional Access Policies, Custom greetings for phone calls
   * P2 feature - Identity Protection, Privileged Identity Management (PIM), Access Review
 * Identity Protection alerts the users and administrators about following risks, optionally enforcess password change etc.
   * Atypical travel
@@ -410,6 +423,12 @@ Two or more instances deployed across two or more Availability Zones in the same
 * Additional authentication methods used only for SSPR:
   * Security questions
   * Email
+* To enable password write back to on-premise director, set the following two options to yes
+  * Write back passwords to your on-premises directory
+  * Allow users to unlock accounts without resetting their password
+* The inviting tenancy is always responsible for MFA for users from the partner organization, even if the partner organization has MFA capabilities
+* The remember Multi-Factor Authentication feature lets users bypass subsequent verifications for a specified number of days, after they've successfully signed-in to a device by using Multi-Factor Authentication
+* When UserPrincipalName (UPN)/Alternate Login ID suffix is not verified with the Azure AD Tenant, then Azure Active Directory replaces the UPN suffixes with the default domain name "onmicrosoft.com"
 
 ## Azure Bastion
 
@@ -461,6 +480,10 @@ Two or more instances deployed across two or more Availability Zones in the same
 * In a hub and spoke architecture, Azure Firewall, Application Gateway, and API Management gateway components uasually all go to the hub virtual network
 * Can be used with Kubernetes
 * Stateful service
+* Firewall Rules 
+  * Application rules: Configure fully qualified domain names (FQDNs) that can be accessed from a subnet.
+  * Network rules: Configure rules that contain source addresses, protocols, destination ports, and destination addresses.
+  * NAT rules: Configure DNAT rules to allow incoming Internet connections.
 
 ## Application Gateway
 
@@ -708,6 +731,9 @@ Two or more instances deployed across two or more Availability Zones in the same
 * Both Standard general-purpose v2 and Premium block blobs support Data Lake Storage, but Standard general-purpose v1 doesn't
 * Standard general-purpose v1 doesn't support ZRS
 * Standard Blob storage (legacy) does not support page blobs
+* Legal hold tags can be deleted
+* Access tiers can be changed when data is in immutable state
+* Once a time-based retention policy is locked, it cannot be removed
 
 ## Azure App Service
 
@@ -733,9 +759,9 @@ Shared - D1 | Shared Cores (240 CPU minutes / day). 1 GB RAM. 1 GB storage. Used
 Basic - B1 | 1 Core. 1.75 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates. unlimited apps per plan. 3 instances max
 Basic - B2 | 2 Cores. 3.50 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates. unlimited apps per plan. 3 instances max
 Basic - B3 | 4 Cores. 7 GB RAM. 10 GB storage. No advanced autoscale or traffic management. SSL certificates. unlimited apps per plan. 3 instances max
-Standard - S1 | 1 Core. 1.75 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5
-Standard - S2 | 2 Cores. 3.50 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5
-Standard - S3 | 4 Cores. 7 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5
+Standard - S1 | 1 Core. 1.75 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5. Production workloads
+Standard - S2 | 2 Cores. 3.50 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5. Production workloads
+Standard - S3 | 4 Cores. 7 GB RAM. 50 GB storage. VNet connectivity. Supports autoscale. 10 instances max. Scheduled backups every 2 hours, a maximum of 12 backups per day. Staging slots 5. Production workloads
 Premium v2 - P1v2 | 1 Core. 3.50 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
 Premium v2 - P2v2 | 2 Cores. 7 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
 Premium v2 - P3v2 | 4 Cores. 14 GB RAM. 250 GB storage. VNet connectivity. Provides SSD storage, Dv2 series. 30 instances max. Scheduled backups every hour, a maximum of 50 backups per day. Staging slots 20
@@ -1055,6 +1081,18 @@ Incremental | An incremental backup stores only the blocks of data that changed 
 * Two types of assessments by using Azure Migrate Server Assessment
   * Performance-based - Assessment based on collected performance or usage data
   * As on-premises - Assessment based on on-premises sizing
+* Azure Migrate can assess and migrate:
+  * Assess on-premises servers including SQL Server instances and migrate them to Azure virtual machines or Azure VMware Solution (AVS) (Preview).
+  * Assess on-premises databases and migrate them to Azure SQL Database or to SQL Managed Instance.
+  * Assess on-premises web applications and migrate them to Azure App Service by using the Azure App Service Migration Assistant.
+  * Assess your on-premises virtual desktop infrastructure (VDI) and migrate it to Windows Virtual Desktop in Azure.
+  * Migrate large amounts of data to Azure quickly and cost-effectively using Azure Data Box products.
+* The Azure Migrate appliance is a lightweight appliance that's deployed on premises, to discover servers for migration to Azure
+  * Azure Migrate can assess upto 35,000 servers in a project
+  * VMware - An appliance can discover up to 10,000 servers running on a vCenter Server
+  * Hyper-V - An appliance can discover up to 5000 servers running in Hyper-V environment
+* An appliance can only connect to a single vCenter Server
+* Any number of appliances can be associated with a single Azure Migrate project
 
 ## Azure SQL
 
@@ -1095,6 +1133,8 @@ Manual database failover | 30 s | 5 s
 * Azure SQL backups are stored in storage account
 * For two managed instances to participate in a failover group, there must be either ExpressRoute or a gateway configured between the virtual networks of the two managed instances to allow network communication
 * Microsoft SQL Server Always On availability group on Azure virtual machines requires Internal Load Balancer with Floating IP enabled
+* Azure Database Migration Service is a fully managed service designed to enable seamless migrations from multiple database sources to Azure data platforms with minimal downtime (online migrations)
+* Data Migration Assistant helps pinpoint potential problems blocking migration. It identifies unsupported features, new features that can benefit you after migration, and the right path for database migration
 
 ## Azure Cosmos DB
 
@@ -1154,6 +1194,8 @@ COPY test1.txt c:/temp/
 ```
 Note: "\" won't work
 
+* Pods and container groups of Azure Container service share local network, storage volumes etc.
+
 ## Azure Blueprints
 
 * Azure Blueprints enables cloud architects to define a repeatable set of Azure resources that implements and adheres to an organization's standards, patterns, and requirements such that the new environments can be built rapidly with confidence following organizational requirements
@@ -1166,6 +1208,7 @@ Note: "\" won't work
   * Role
   * ARM Template
   * Resource Group
+* The ordering in large blueprint definition is accomplished by defining a `dependsOn` property in the JSON
 
 ## Azure Sentinel
 
@@ -1296,7 +1339,6 @@ New-AzResourceGroupDeployment `
   -ResourceGroupName rg-kube-dev-001 `
   -TemplateUri "D:\gitrepo\kubernetes-study\lab\arm\azureDeploy.json"
 ```
-
 
 ## References
 
