@@ -348,6 +348,15 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
 * For premium SSDs, standard SSDs, and standard HDDs: When you disable or delete your key, any VMs with disks using that key will automatically shut down
 * For ultra disks: when you disable or delete a key, any VMs with ultra disks using the key won't automatically shut down
 * All successful scale actions and autoscale failures are logged in Activity Log
+* Ephemeral OS disks work well for stateless workloads, where applications are tolerant of individual VM failures, but are more affected by VM deployment time or reimaging the individual VM instances. With Ephemeral OS disk, you get lower read/write latency to the OS disk and faster VM reimage
+* Ephemeral disks do not support:
+  * Capturing VM images
+  * Disk snapshots
+  * Azure Disk Encryption
+  * Azure Backup
+  * Azure Site Recovery
+  * OS Disk Swap
+* A read-only lock on a resource group that contains a virtual machine prevents all users from starting or restarting the virtual machine. These operations require a POST request
 
 VM Details | Availability
 ---------- | ------------
@@ -734,6 +743,7 @@ Two or more instances deployed across two or more Availability Zones in the same
 * Legal hold tags can be deleted
 * Access tiers can be changed when data is in immutable state
 * Once a time-based retention policy is locked, it cannot be removed
+* A read-only lock on a resource group that contains a storage account prevents all users from listing the keys. The list keys operation is handled through a POST request because the returned keys are available for write operations
 
 ## Azure App Service
 
@@ -1067,6 +1077,11 @@ Incremental | An incremental backup stores only the blocks of data that changed 
   * Linux Generation 2 VMs aren't supported
   * Shared VHD & FC Disk not supported
 * Recovery Service Vault has to be in the same region as the VMs
+* Objects to be created
+  * Storage Account
+  * Recovery Service Vault
+  * Replication Policy
+  * Hyper-V Site
 
 ## Azure Migrate
 
@@ -1135,6 +1150,7 @@ Manual database failover | 30 s | 5 s
 * Microsoft SQL Server Always On availability group on Azure virtual machines requires Internal Load Balancer with Floating IP enabled
 * Azure Database Migration Service is a fully managed service designed to enable seamless migrations from multiple database sources to Azure data platforms with minimal downtime (online migrations)
 * Data Migration Assistant helps pinpoint potential problems blocking migration. It identifies unsupported features, new features that can benefit you after migration, and the right path for database migration
+* Advanced Threat Protection for an Azure SQL Managed Instance detects anomalous activities indicating unusual and potentially harmful attempts to access or exploit databases. Advanced Threat Protection can identify Potential SQL injection, Access from unusual location or data center, Access from unfamiliar principal or potentially harmful application, and Brute force SQL credentials
 
 ## Azure Cosmos DB
 
@@ -1195,6 +1211,9 @@ COPY test1.txt c:/temp/
 Note: "\" won't work
 
 * Pods and container groups of Azure Container service share local network, storage volumes etc.
+* AKS uses the following rules to determine if automatic repair is needed.
+  * The node reports status of NotReady on consecutive checks within a 10-minute timeframe
+  * The node doesn't report a status within 10 minutes
 
 ## Azure Blueprints
 
