@@ -357,6 +357,18 @@ Max IOPS | 160,000 | 20,000	| 6,000 | 2,000
   * Azure Site Recovery
   * OS Disk Swap
 * A read-only lock on a resource group that contains a virtual machine prevents all users from starting or restarting the virtual machine. These operations require a POST request
+* An existing virtual machine cannot be added to an availability set
+* Snapshots are billed based on the used size. For example, if you create a snapshot of a managed disk with provisioned capacity of 64 GiB and actual used data size of 10 GiB, that snapshot is billed only for the used data size of 10 GiB
+* Limitations of Ultra Disk
+  * Can only be created as empty disks.
+  * Doesn't currently support disk snapshots, disk export, changing disk type, VM images, availability sets, Azure Dedicated Hosts, or Azure disk encryption.
+  * Doesn't currently support integration with Azure Backup or Azure Site Recovery
+* Azure Disk Encryption uses BitLocker for windows and DM-Crypt for Linux
+* Disk Encryption is unsupported for ephemeral OS disk, RAID, Server side encrypted disk with customer managed Key
+* Disk Encryption provides encryption of the temporary disk when the VolumeType parameter is All
+* You can encrypt both boot and data volumes, but you can't encrypt the data without first encrypting the OS volume
+* ADE encrypted VMs can’t be recovered at the file/folder level. You need to recover the entire VM to restore files and folders
+
 
 VM Details | Availability
 ---------- | ------------
@@ -798,6 +810,11 @@ Deployment logging | Both Windows & Linux, only File system, Logs for when you p
   * A function can become large because of many Node.js dependencies. Importing dependencies can also cause increased load times that result in unexpected timeouts
 * Timeout - 10 mins max (Consumption plan), Unlimited max (Premium plan)
 * Azure function availability SLA for both Consumption & Premium plan - 99.95 %
+* By default, web apps are unloaded if they are idle for a set period of time. This lets the system conserve resources. In Basic and Standard plans, you can turn on the Always On setting to keep the web app loaded all the time. If your web app runs continuous WebJobs, you should turn on Always On, or the WebJobs might not run reliably
+* To review WebJob logs, sign in to your Kudu website (https://*yourwebsitename*.scm.azurewebsites.net)
+* default *.azurewebsites.net domain
+* You can set up continuous deployment from several resources, including Azure DevOps, OneDrive, GitHub, Bitbucket, Dropbox, and other Git repositories
+* IP restrictions: Restrict inbound traffic to your function app by IP range
 
 ## ARM Template
 
@@ -1030,20 +1047,16 @@ https://mystorageaccount.blob.core.windows.net/mycontainer/mynamespace/myeventhu
 * Azure Backup offers three types of replication - LRS, GRS, ZRS
 * Azure Backup stores backed-up data in vaults - Recovery Services vaults and Backup vaults. A vault is an online-storage entity in Azure that's used to hold data, such as backup copies, recovery points, and backup policies
 * Multiple virtual machines can be backed up by creating a backup policy on the recovery services vault and applying that policy to the desired virtual machines
-* Back up of on-premises machines:
-  * Back up on-premises Windows machines directly to Azure by using the Azure Backup Microsoft Azure Recovery Services (MARS) agent. Linux machines aren't supported (use MABS for for Linux)
-  * Back up on-premises machines to a backup server (agentless) - either System Center Data Protection Manager (DPM) or Microsoft Azure Backup Server (MABS). The backup server is then backed up to a Recovery Services vault in Azure
-* Back up of Azure VMs:
-  * Back up Azure VMs directly. Azure Backup installs a backup extension to the Azure VM agent that's running on the VM. This extension backs up the entire VM
-  * Back up specific files and folders on the Azure VM by running the MARS agent
-  * Back up Azure VMs to the MABS that's running in Azure, and then the MABS can be backed up to a Recovery Services vault
-* DPM allows you to back up data for long-term storage on tape. MABS doesn't provide this functionality
+* MARS is not supported on Linux. For Linux, therefore, agentless option is used viz. MABS or DPM
+* DPM allows storing back up data for long-term storage on tape. MABS doesn't provide this functionality
 * For Azure Backup to access the storage account, the firewall section must enable the "Allow trusted Microsoft services to access this storage account"
-
-Backup type | Details | Usage
------------ | ------- | -----
-Full | A full backup contains the entire data source. Takes more network bandwidth than differential or incremental backups | Used for initial backup
-Incremental | An incremental backup stores only the blocks of data that changed since the previous backup. High storage and network efficiency. With incremental backup, there's no need to supplement with full backups | Used by DPM/MABS for disk backups, and used in all backups to Azure. Not used for SQL Server backup
+* Azure Backup provides a mechanism to backup and restore encrypted VM's within the same subscription and region. Restoring an encrypted VM to a different region is not currently supported
+* You can register up to 1000 Azure Virtual machines per vault. If you're using the Microsoft Azure Backup Agent, you can register up to 50 MARS agents per vault. And you can register 50 MABS servers/DPM servers to a vault
+* Item level restore (ILR)
+  * supported for Azure VMs backed up by Azure VM backup
+  * not supported for online recovery points of on-premises VMs backed up by Azure Backup Server (MABS) or System Center DPM
+* Exporting data directly from the Recovery Services vault to on-premises using Data Box is not supported. Data must be restored to a storage account, and then it can be moved to on-premises via Data Box or Import/Export
+* Azure Backup doesn't support backing up NFS files
 
 ## Azure Site Recovery
 
