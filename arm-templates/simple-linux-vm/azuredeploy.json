@@ -316,6 +316,17 @@
       "name": "[parameters('userAssignedIdentitiesName')]",
       "location": "westus2"
     }, {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2017-09-01",
+      "name": "[guid(resourceGroup().id)]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('userAssignedIdentitiesName'))]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "principalId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('userAssignedIdentitiesName'))]"
+      }
+    }, {
       "type": "Microsoft.Resources/deploymentScripts",
       "apiVersion": "2020-10-01",
       "name": "runPowerShellInline",
