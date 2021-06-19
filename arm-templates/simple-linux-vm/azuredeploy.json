@@ -324,7 +324,7 @@
       ],
       "properties": {
         "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-        "principalId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('userAssignedIdentitiesName'))]"
+        "principalId": "[reference(parameters('userAssignedIdentitiesName')).principalId]"
       }
     }, {
       "type": "Microsoft.Resources/deploymentScripts",
@@ -352,6 +352,17 @@
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2019-06-01').keys[0].value]"
         },
         "azPowerShellVersion": "3.0", // or "azCliVersion": "2.0.80",
+        "environmentVariables": [{
+            "name": "storageAccountName",
+            "value": "[parameters('storageAccountName')]"
+          }, {
+            "name": "resourceGroupName",
+            "secureValue": "[resourceGroup().name]"
+          }, {
+            "name": "vmName",
+            "secureValue": "[parameters('vmName')]"
+          }
+        ],
         "primaryScriptUri": "https://raw.githubusercontent.com/saptarshibasu/azure-study/master/arm-templates/simple-linux-vm/install_lad.ps1",
         "supportingScriptUris": [],
         "timeout": "PT30M",
