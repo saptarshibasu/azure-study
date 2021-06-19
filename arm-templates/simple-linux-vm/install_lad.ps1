@@ -10,7 +10,7 @@ $vm = Get-AzVM -Name $vmName -ResourceGroupName $VMresourceGroup
 Update-AzVM -ResourceGroupName $VMresourceGroup -VM $vm -IdentityType SystemAssigned
 
 # Get the public settings template from GitHub and update the templated values for the storage account and resource ID
-$publicSettings = (Invoke-WebRequest -Uri https://raw.githubusercontent.com/Azure/azure-linux-extensions/master/Diagnostic/tests/lad_2_3_compatible_portal_pub_settings.json).Content
+$publicSettings = (Invoke-WebRequest -Uri https://raw.githubusercontent.com/saptarshibasu/azure-study/master/arm-templates/simple-linux-vm/lad_pub_settings.json).Content
 $publicSettings = $publicSettings.Replace('__DIAGNOSTIC_STORAGE_ACCOUNT__', $storageAccountName)
 $publicSettings = $publicSettings.Replace('__VM_RESOURCE_ID__', $vm.Id)
 
