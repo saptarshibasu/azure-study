@@ -1,0 +1,49 @@
+{
+  "StorageAccount": "__DIAGNOSTIC_STORAGE_ACCOUNT__",
+  "ladCfg": {
+    "diagnosticMonitorConfiguration": {
+      "eventVolume": "Medium", 
+      "metrics": {
+        "metricAggregation": [
+          {
+            "scheduledTransferPeriod": "PT1H"
+          }, 
+          {
+            "scheduledTransferPeriod": "PT1M"
+          }
+        ], 
+        "resourceId": "__VM_RESOURCE_ID__"
+      }, 
+      "performanceCounters": {
+        "performanceCounterConfiguration": [
+
+        ]
+      }, 
+      "syslogEvents": {
+        "syslogEventConfiguration": {
+          "LOG_AUTH": "none", 
+          "LOG_AUTHPRIV": "none", 
+          "LOG_CRON": "none", 
+          "LOG_DAEMON": "none", 
+          "LOG_FTP": "none", 
+          "LOG_KERN": "none", 
+          "LOG_LOCAL0": "none", 
+          "LOG_LOCAL1": "none", 
+          "LOG_LOCAL2": "none", 
+          "LOG_LOCAL3": "none", 
+          "LOG_LOCAL4": "none", 
+          "LOG_LOCAL5": "none", 
+          "LOG_LOCAL6": "none", 
+          "LOG_LOCAL7": "none", 
+          "LOG_LPR": "none", 
+          "LOG_MAIL": "none", 
+          "LOG_NEWS": "none", 
+          "LOG_SYSLOG": "LOG_DEBUG", 
+          "LOG_USER": "none", 
+          "LOG_UUCP": "none"
+        }
+      }
+    }, 
+    "sampleRateInSeconds": 15
+  }
+}
