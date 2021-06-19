@@ -1,6 +1,4 @@
-param([string] $resourceGroupName)
-param([string] $storageAccountName)
-param([string] $vmName)
+param([string] $resourceGroupName, [string] $storageAccountName, [string] $vmName)
 
 # Get the VM object
 $vm = Get-AzVM -Name $vmName -ResourceGroupName $resourceGroupName
