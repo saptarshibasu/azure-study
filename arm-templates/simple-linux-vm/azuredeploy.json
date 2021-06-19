@@ -4,6 +4,7 @@
   "parameters": {
     "vmName": {
       "type": "string",
+      "defaultValue": "vm-adpoc",
       "metadata": {
         "description": "The name of you Virtual Machine."
       }
@@ -351,18 +352,8 @@
           "storageAccountName": "[parameters('storageAccountName')]",
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2019-06-01').keys[0].value]"
         },
-        "azPowerShellVersion": "3.0", // or "azCliVersion": "2.0.80",
-        "environmentVariables": [{
-            "name": "storageAccountName",
-            "value": "[parameters('storageAccountName')]"
-          }, {
-            "name": "resourceGroupName",
-            "secureValue": "[resourceGroup().name]"
-          }, {
-            "name": "vmName",
-            "secureValue": "[parameters('vmName')]"
-          }
-        ],
+        "azPowerShellVersion": "3.0",
+        "arguments": "[concat('-resourceGroupName ', resourceGroup().name)]",
         "primaryScriptUri": "https://raw.githubusercontent.com/saptarshibasu/azure-study/master/arm-templates/simple-linux-vm/install_lad.ps1",
         "supportingScriptUris": [],
         "timeout": "PT30M",
