@@ -1,3 +1,5 @@
+param([string] $resourceGroupName)
+
 $storageAccountName = "sacadpoc"
 $vmName = "vm-adpoc"
 
