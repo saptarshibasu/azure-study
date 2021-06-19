@@ -228,12 +228,18 @@
         "idleTimeoutInMinutes": 4
       }
     }, {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2018-11-30",
+      "name": "[parameters('userAssignedIdentitiesName')]",
+      "location": "westus2"
+    }, {
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "2020-06-01",
       "name": "[parameters('vmName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('userAssignedIdentitiesName'))]"
       ],
       "properties": {
         "hardwareProfile": {
@@ -312,16 +318,12 @@
         "accessTier": "Hot"
       }
     }, {
-      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-      "apiVersion": "2018-11-30",
-      "name": "[parameters('userAssignedIdentitiesName')]",
-      "location": "westus2"
-    }, {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2017-09-01",
       "name": "[guid(resourceGroup().id)]",
       "dependsOn": [
-        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('userAssignedIdentitiesName'))]"
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('userAssignedIdentitiesName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
       ],
       "properties": {
         "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
@@ -353,7 +355,9 @@
           "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2019-06-01').keys[0].value]"
         },
         "azPowerShellVersion": "3.0",
-        "arguments": "[concat('-resourceGroupName ', resourceGroup().name)]",
+        "arguments": "[concat('-resourceGroupName \\\"', resourceGroup().name, '\\\"',
+                              '-storageAccountName \\\"', parameters('storageAccountName'), '\\\"',
+                              '-vmName \\\"', parameters('vmName'), '\\\"')]",
         "primaryScriptUri": "https://raw.githubusercontent.com/saptarshibasu/azure-study/master/arm-templates/simple-linux-vm/install_lad.ps1",
         "supportingScriptUris": [],
         "timeout": "PT30M",

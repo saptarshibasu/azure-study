@@ -1,7 +1,6 @@
 param([string] $resourceGroupName)
-
-$storageAccountName = "sacadpoc"
-$vmName = "vm-adpoc"
+param([string] $storageAccountName)
+param([string] $vmName)
 
 # Get the VM object
 $vm = Get-AzVM -Name $vmName -ResourceGroupName $resourceGroupName
